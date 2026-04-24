@@ -24,14 +24,14 @@ const app = express();
 const httpServer = createServer(app);
 const io = new Server(httpServer, {
   cors: {
-    origin: ['http://localhost:5174', 'http://localhost:5173', 'http://localhost:3000', 'https://skills-connect-server.railway.app'],
+    origin: process.env.NODE_ENV === 'production' ? ['https://skills-connect-server.railway.app'] : true,
     credentials: true
   }
 });
 
 // CORS configuration
 app.use(cors({
-  origin: ['http://localhost:5174', 'http://localhost:5173', 'http://localhost:3000', 'https://skills-connect-server.railway.app'],
+  origin: process.env.NODE_ENV === 'production' ? ['https://skills-connect-server.railway.app'] : true,
   credentials: true
 }));
 
