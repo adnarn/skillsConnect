@@ -131,23 +131,23 @@ export default function KYCPage() {
         </div>
       )}
 
-      <div className="max-w-2xl mx-auto px-4 py-8">
+      <div className="max-w-2xl mx-auto px-4 py-6 md:py-8">
         {/* Not submitted */}
         {!kycStatus && (
-          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-8">
-            <div className="text-center mb-8">
-              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <CheckCircle className="w-8 h-8 text-green-600" />
+          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 md:p-8">
+            <div className="text-center mb-6 md:mb-8">
+              <div className="w-12 h-12 md:w-16 md:h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <CheckCircle className="w-6 h-6 md:w-8 md:h-8 text-green-600" />
               </div>
-              <h1 className="text-2xl font-bold text-gray-900 mb-2">Get Verified ✓</h1>
-              <p className="text-gray-600">
+              <h1 className="text-xl md:text-2xl font-bold text-gray-900 mb-2">Get Verified ✓</h1>
+              <p className="text-gray-600 text-sm md:text-base">
                 Verified workers get 3x more bookings. Submit your ID to get the green verified badge on your profile.
               </p>
             </div>
 
-            <div className="bg-green-50 rounded-lg p-4 mb-8">
-              <h3 className="font-semibold text-gray-900 mb-3">Benefits of verification:</h3>
-              <ul className="space-y-2 text-sm text-gray-700">
+            <div className="bg-green-50 rounded-lg p-4 mb-6 md:mb-8">
+              <h3 className="font-semibold text-gray-900 mb-3 text-sm md:text-base">Benefits of verification:</h3>
+              <ul className="space-y-2 text-xs md:text-sm text-gray-700">
                 <li className="flex items-center">
                   <CheckCircle className="w-4 h-4 mr-2 text-green-600" />
                   Verified badge on your profile
@@ -227,45 +227,47 @@ export default function KYCPage() {
                 />
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Upload ID Photo</label>
-                <div className="border-2 border-dashed border-gray-200 rounded-lg p-4">
-                  {idPhotoPreview ? (
-                    <img src={idPhotoPreview} alt="ID Preview" className="w-full h-48 object-cover rounded" />
-                  ) : (
-                    <div className="text-center">
-                      <Upload className="w-8 h-8 text-gray-400 mx-auto mb-2" />
-                      <p className="text-sm text-gray-500">Click to upload ID photo</p>
-                    </div>
-                  )}
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={(e) => handleFileChange(e, 'idPhoto')}
-                    className="w-full mt-2"
-                    required
-                  />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Upload ID Photo</label>
+                  <div className="border-2 border-dashed border-gray-200 rounded-lg p-4">
+                    {idPhotoPreview ? (
+                      <img src={idPhotoPreview} alt="ID Preview" className="w-full h-32 md:h-48 object-cover rounded" />
+                    ) : (
+                      <div className="text-center">
+                        <Upload className="w-8 h-8 text-gray-400 mx-auto mb-2" />
+                        <p className="text-sm text-gray-500">Click to upload ID photo</p>
+                      </div>
+                    )}
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => handleFileChange(e, 'idPhoto')}
+                      className="w-full mt-2"
+                      required
+                    />
+                  </div>
                 </div>
-              </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Upload Selfie</label>
-                <div className="border-2 border-dashed border-gray-200 rounded-lg p-4">
-                  {selfiePreview ? (
-                    <img src={selfiePreview} alt="Selfie Preview" className="w-full h-48 object-cover rounded" />
-                  ) : (
-                    <div className="text-center">
-                      <Upload className="w-8 h-8 text-gray-400 mx-auto mb-2" />
-                      <p className="text-sm text-gray-500">Click to upload selfie</p>
-                    </div>
-                  )}
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={(e) => handleFileChange(e, 'selfie')}
-                    className="w-full mt-2"
-                    required
-                  />
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Upload Selfie</label>
+                  <div className="border-2 border-dashed border-gray-200 rounded-lg p-4">
+                    {selfiePreview ? (
+                      <img src={selfiePreview} alt="Selfie Preview" className="w-full h-32 md:h-48 object-cover rounded" />
+                    ) : (
+                      <div className="text-center">
+                        <Upload className="w-8 h-8 text-gray-400 mx-auto mb-2" />
+                        <p className="text-sm text-gray-500">Click to upload selfie</p>
+                      </div>
+                    )}
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => handleFileChange(e, 'selfie')}
+                      className="w-full mt-2"
+                      required
+                    />
+                  </div>
                 </div>
               </div>
 
@@ -282,17 +284,17 @@ export default function KYCPage() {
 
         {/* Pending */}
         {kycStatus?.status === 'pending' && (
-          <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-8">
+          <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4 md:p-8">
             <div className="text-center">
-              <Clock className="w-16 h-16 text-yellow-500 mx-auto mb-4" />
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">Verification Under Review</h2>
-              <p className="text-gray-600 mb-4">
+              <Clock className="w-12 h-12 md:w-16 md:h-16 text-yellow-500 mx-auto mb-4" />
+              <h2 className="text-xl md:text-2xl font-bold text-gray-900 mb-2">Verification Under Review</h2>
+              <p className="text-gray-600 mb-4 text-sm md:text-base">
                 Your documents have been submitted and are being reviewed by our team. This usually takes 24-48 hours.
               </p>
               <div className="bg-white rounded-lg p-4 text-left">
-                <p className="text-sm text-gray-500">Submitted: {new Date(kycStatus.createdAt).toLocaleDateString()}</p>
-                <p className="text-sm text-gray-500">ID Type: {kycStatus.idType}</p>
-                <p className="text-sm text-gray-500">Name: {kycStatus.fullName}</p>
+                <p className="text-xs md:text-sm text-gray-500">Submitted: {new Date(kycStatus.createdAt).toLocaleDateString()}</p>
+                <p className="text-xs md:text-sm text-gray-500">ID Type: {kycStatus.idType}</p>
+                <p className="text-xs md:text-sm text-gray-500">Name: {kycStatus.fullName}</p>
               </div>
             </div>
           </div>
@@ -300,15 +302,15 @@ export default function KYCPage() {
 
         {/* Approved */}
         {kycStatus?.status === 'approved' && (
-          <div className="bg-green-50 border border-green-200 rounded-xl p-8">
+          <div className="bg-green-50 border border-green-200 rounded-xl p-4 md:p-8">
             <div className="text-center">
-              <CheckCircle className="w-16 h-16 text-green-500 mx-auto mb-4" />
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">Identity Verified</h2>
-              <p className="text-gray-600 mb-4">
+              <CheckCircle className="w-12 h-12 md:w-16 md:h-16 text-green-500 mx-auto mb-4" />
+              <h2 className="text-xl md:text-2xl font-bold text-gray-900 mb-2">Identity Verified</h2>
+              <p className="text-gray-600 mb-4 text-sm md:text-base">
                 Your account is verified. You now appear with a verified badge to all clients.
               </p>
               <div className="bg-white rounded-lg p-4 text-left">
-                <p className="text-sm text-gray-500">Verified: {new Date(kycStatus.reviewedAt).toLocaleDateString()}</p>
+                <p className="text-xs md:text-sm text-gray-500">Verified: {new Date(kycStatus.reviewedAt).toLocaleDateString()}</p>
               </div>
             </div>
           </div>
@@ -316,11 +318,11 @@ export default function KYCPage() {
 
         {/* Rejected */}
         {kycStatus?.status === 'rejected' && (
-          <div className="bg-red-50 border border-red-200 rounded-xl p-8">
+          <div className="bg-red-50 border border-red-200 rounded-xl p-4 md:p-8">
             <div className="text-center">
-              <XCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">Verification Rejected</h2>
-              <p className="text-gray-600 mb-4">{kycStatus.rejectionReason || 'Your documents could not be verified.'}</p>
+              <XCircle className="w-12 h-12 md:w-16 md:h-16 text-red-500 mx-auto mb-4" />
+              <h2 className="text-xl md:text-2xl font-bold text-gray-900 mb-2">Verification Rejected</h2>
+              <p className="text-gray-600 mb-4 text-sm md:text-base">{kycStatus.rejectionReason || 'Your documents could not be verified.'}</p>
               <button
                 onClick={handleResubmit}
                 className="bg-primary-600 text-white px-6 py-2 rounded-lg font-semibold hover:bg-primary-700"

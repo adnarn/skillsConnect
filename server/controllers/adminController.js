@@ -17,7 +17,8 @@ export const getStats = async (req, res) => {
       .sort({ createdAt: -1 })
       .limit(5)
       .populate('client', 'name email')
-      .populate('worker', 'name email');
+      .populate('worker', 'name email')
+      .lean();
 
     res.json({
       totalUsers,
@@ -82,23 +83,21 @@ export const toggleUserActive = async (req, res) => {
 
 export const getAllBookings = async (req, res) => {
   try {
-    const { status, search } = req.query;
+    const { status } = req.query;
     const filter = {};
     if (status) filter.status = status;
-    if (search) {
-      filter.$or = [
-        { 'client.name': { $regex: search, $options: 'i' } },
-        { 'worker.name': { $regex: search, $options: 'i' } }
-      ];
-    }
 
     const bookings = await Booking.find(filter)
       .sort({ createdAt: -1 })
       .populate('client', 'name email')
       .populate('worker', 'name email');
 
+    console.log('Bookings fetched:', bookings.length);
+    console.log('First booking:', bookings[0]);
+
     res.json(bookings);
   } catch (error) {
+    console.error('Error fetching bookings:', error);
     res.status(500).json({ message: error.message });
   }
 };

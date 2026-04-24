@@ -117,6 +117,16 @@ export default function Explore() {
                 className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none"
               />
             </div>
+            <div className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                id="verifiedOnly"
+                checked={filters.verifiedOnly}
+                onChange={(e) => handleFilterChange('verifiedOnly', e.target.checked)}
+                className="w-4 h-4 text-primary-600 rounded focus:ring-primary-500"
+              />
+              <label htmlFor="verifiedOnly" className="text-sm text-gray-700">Verified Only</label>
+            </div>
             <Link
               to="/map"
               className="flex items-center justify-center px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors whitespace-nowrap"
@@ -138,7 +148,7 @@ export default function Explore() {
           <>
             {/* List View */}
             {viewMode === 'list' && (
-              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {workers.map((worker) => (
                   <WorkerCard key={worker._id || worker.id} worker={worker} />
                 ))}

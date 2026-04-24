@@ -10,6 +10,11 @@
   box-sizing: border-box;
 }
 
+html, body {
+  overflow-x: hidden;
+  max-width: 100vw;
+}
+
 body {
   font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   -webkit-font-smoothing: antialiased;
@@ -18,6 +23,25 @@ body {
 
 #root {
   min-height: 100vh;
+}
+
+/* Mobile input font-size fix (prevents iOS zoom on focus) */
+@media (max-width: 640px) {
+  input, select, textarea {
+    font-size: 16px !important;
+  }
+}
+
+/* Minimum touch target for buttons */
+@media (max-width: 640px) {
+  button {
+    min-height: 44px;
+  }
+}
+
+/* Images max-width */
+img {
+  max-width: 100%;
 }
 
 /* Leaflet map styles */

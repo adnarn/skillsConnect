@@ -121,33 +121,41 @@ export default function AdminDashboard() {
   ];
 
   const StatCard = ({ title, value, icon: Icon, color, highlight }) => (
-    <div className={`bg-white rounded-xl shadow-sm border border-gray-100 p-6 ${highlight ? 'ring-2 ring-yellow-400' : ''}`}>
+    <div className={`bg-white rounded-xl shadow-sm border border-gray-100 p-4 md:p-6 ${highlight ? 'ring-2 ring-yellow-400' : ''}`}>
       <div className="flex items-center justify-between">
         <div>
-          <p className="text-sm text-gray-500 mb-1">{title}</p>
-          <p className="text-2xl font-bold text-gray-900">{value}</p>
+          <p className="text-xs md:text-sm text-gray-500 mb-1">{title}</p>
+          <p className="text-xl md:text-2xl font-bold text-gray-900">{value}</p>
         </div>
-        <div className={`w-12 h-12 rounded-lg flex items-center justify-center ${color}`}>
-          <Icon className="w-6 h-6 text-white" />
+        <div className={`w-10 h-10 md:w-12 md:h-12 rounded-lg flex items-center justify-center ${color}`}>
+          <Icon className="w-5 h-5 md:w-6 md:h-6 text-white" />
         </div>
       </div>
     </div>
   );
 
   return (
-    <div className="min-h-screen bg-gray-50 flex">
+    <div className="min-h-screen bg-gray-50 overflow-x-hidden">
       {toast.show && (
-        <div className={`fixed top-4 right-4 px-6 py-3 rounded-lg shadow-lg z-50 ${
+        <div className={`fixed top-4 right-4 px-4 py-3 rounded-lg shadow-lg z-50 ${
           toast.type === 'error' ? 'bg-red-500 text-white' : 'bg-green-500 text-white'
         }`}>
           {toast.message}
         </div>
       )}
 
+      {/* Mobile backdrop */}
+      {sidebarOpen && (
+        <div 
+          className="md:hidden fixed inset-0 bg-black bg-opacity-50 z-40"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
       {/* Sidebar */}
       <div className={`fixed inset-y-0 left-0 z-50 w-64 bg-gray-900 transform ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0 transition-transform duration-300`}>
-        <div className="flex items-center justify-between p-6 border-b border-gray-800">
-          <h1 className="text-xl font-bold text-white">Admin Panel</h1>
+        <div className="flex items-center justify-between p-4 md:p-6 border-b border-gray-800">
+          <h1 className="text-lg md:text-xl font-bold text-white">Admin Panel</h1>
           <button onClick={() => setSidebarOpen(false)} className="md:hidden text-white">
             <X className="w-6 h-6" />
           </button>
@@ -163,7 +171,7 @@ export default function AdminDashboard() {
             >
               <div className="flex items-center">
                 <item.icon className="w-5 h-5 mr-3" />
-                {item.label}
+                <span className="text-sm md:text-base">{item.label}</span>
               </div>
               {item.badge > 0 && (
                 <span className="bg-yellow-500 text-black text-xs font-bold px-2 py-1 rounded-full">
@@ -179,15 +187,15 @@ export default function AdminDashboard() {
             className="w-full flex items-center px-4 py-3 rounded-lg text-red-400 hover:bg-gray-800 transition-colors"
           >
             <LogOut className="w-5 h-5 mr-3" />
-            Logout
+            <span className="text-sm md:text-base">Logout</span>
           </button>
         </div>
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 md:ml-64">
+      <div className="md:ml-64 min-h-screen w-full">
         {/* Mobile Header */}
-        <div className="md:hidden bg-white border-b border-gray-200 p-4 flex items-center justify-between">
+        <div className="md:hidden sticky top-0 bg-white border-b border-gray-200 p-4 flex items-center justify-between z-30">
           <button onClick={() => setSidebarOpen(true)} className="text-gray-600">
             <Menu className="w-6 h-6" />
           </button>
@@ -195,18 +203,18 @@ export default function AdminDashboard() {
           <div className="w-6" />
         </div>
 
-        <div className="p-6">
+        <div className="p-4 md:p-6 w-full max-w-full">
           {/* Overview Page */}
           {activePage === 'overview' && (
             <div>
-              <h2 className="text-2xl font-bold text-gray-900 mb-6">Dashboard Overview</h2>
+              <h2 className="text-xl md:text-2xl font-bold text-gray-900 mb-4 md:mb-6">Dashboard Overview</h2>
               {loading ? (
                 <div className="flex items-center justify-center py-12">
                   <Loader2 className="w-8 h-8 animate-spin text-primary-600" />
                 </div>
               ) : (
                 <>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-6 md:mb-8">
                     <StatCard title="Total Users" value={stats?.totalUsers || 0} icon={Users} color="bg-blue-500" />
                     <StatCard title="Total Workers" value={stats?.totalWorkers || 0} icon={Briefcase} color="bg-purple-500" />
                     <StatCard title="Total Clients" value={stats?.totalClients || 0} icon={UserPlus} color="bg-green-500" />
@@ -217,10 +225,36 @@ export default function AdminDashboard() {
                     <StatCard title="Pending Bookings" value={stats?.pendingBookings || 0} icon={Clock} color="bg-indigo-500" />
                   </div>
 
-                  <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-4">Recent Bookings</h3>
-                    <div className="overflow-x-auto">
-                      <table className="w-full">
+                  <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 md:p-6">
+                    <h3 className="text-base md:text-lg font-semibold text-gray-900 mb-4">Recent Bookings</h3>
+                    {/* Mobile card view */}
+                    <div className="md:hidden space-y-3">
+                      {stats?.recentBookings?.map((booking) => (
+                        <div key={booking._id} className="border border-gray-200 rounded-lg p-3">
+                          <div className="flex justify-between items-start mb-2">
+                            <div>
+                              <p className="text-sm font-medium text-gray-900">{booking.client?.name || 'N/A'}</p>
+                              <p className="text-xs text-gray-500">Client</p>
+                            </div>
+                            <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                              booking.status === 'completed' ? 'bg-green-100 text-green-700' :
+                              booking.status === 'cancelled' ? 'bg-red-100 text-red-700' :
+                              'bg-yellow-100 text-yellow-700'
+                            }`}>
+                              {booking.status}
+                            </span>
+                          </div>
+                          <div className="space-y-1 text-xs text-gray-600">
+                            <p><span className="font-medium">Worker:</span> {booking.worker?.name || 'N/A'}</p>
+                            <p><span className="font-medium">Service:</span> {booking.service || 'N/A'}</p>
+                            <p><span className="font-medium">Date:</span> {new Date(booking.createdAt).toLocaleDateString()}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                    {/* Desktop table view */}
+                    <div className="hidden md:block overflow-x-auto">
+                      <table className="w-full min-w-[500px]">
                         <thead>
                           <tr className="border-b border-gray-200">
                             <th className="text-left py-3 px-4 text-sm font-medium text-gray-600">Client</th>
@@ -260,9 +294,9 @@ export default function AdminDashboard() {
           {/* Users Page */}
           {activePage === 'users' && (
             <div>
-              <h2 className="text-2xl font-bold text-gray-900 mb-6">Users Management</h2>
-              <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-                <div className="flex flex-col md:flex-row gap-4 mb-6">
+              <h2 className="text-xl md:text-2xl font-bold text-gray-900 mb-4 md:mb-6">Users Management</h2>
+              <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 md:p-6">
+                <div className="flex flex-col sm:flex-row gap-4 mb-6">
                   <div className="flex-1 relative">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                     <input
@@ -270,7 +304,7 @@ export default function AdminDashboard() {
                       placeholder="Search by name..."
                       value={userSearch}
                       onChange={(e) => setUserSearch(e.target.value)}
-                      className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none"
+                      className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary-500 outline-none text-sm"
                     />
                   </div>
                   <div className="flex gap-2">
@@ -278,7 +312,7 @@ export default function AdminDashboard() {
                       <button
                         key={filter}
                         onClick={() => setUserFilter(filter)}
-                        className={`px-4 py-2 rounded-lg font-medium capitalize ${
+                        className={`px-3 md:px-4 py-2 rounded-lg font-medium capitalize text-sm ${
                           userFilter === filter ? 'bg-primary-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                         }`}
                       >
@@ -293,55 +327,97 @@ export default function AdminDashboard() {
                     <Loader2 className="w-8 h-8 animate-spin text-primary-600" />
                   </div>
                 ) : (
-                  <div className="overflow-x-auto">
-                    <table className="w-full">
-                      <thead>
-                        <tr className="border-b border-gray-200">
-                          <th className="text-left py-3 px-4 text-sm font-medium text-gray-600">Name</th>
-                          <th className="text-left py-3 px-4 text-sm font-medium text-gray-600">Email</th>
-                          <th className="text-left py-3 px-4 text-sm font-medium text-gray-600">Role</th>
-                          <th className="text-left py-3 px-4 text-sm font-medium text-gray-600">City</th>
-                          <th className="text-left py-3 px-4 text-sm font-medium text-gray-600">Joined</th>
-                          <th className="text-left py-3 px-4 text-sm font-medium text-gray-600">Status</th>
-                          <th className="text-left py-3 px-4 text-sm font-medium text-gray-600">Actions</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {users.map((user) => (
-                          <tr key={user._id} className="border-b border-gray-100">
-                            <td className="py-3 px-4 text-sm font-medium">{user.name}</td>
-                            <td className="py-3 px-4 text-sm text-gray-500">{user.email}</td>
-                            <td className="py-3 px-4">
-                              <span className={`px-2 py-1 rounded-full text-xs font-medium capitalize ${
+                  <>
+                    {/* Mobile card view */}
+                    <div className="md:hidden space-y-3">
+                      {users.map((user) => (
+                        <div key={user._id} className="border border-gray-200 rounded-lg p-3">
+                          <div className="flex justify-between items-start mb-2">
+                            <div>
+                              <p className="text-sm font-medium text-gray-900">{user.name}</p>
+                              <p className="text-xs text-gray-500">{user.email}</p>
+                            </div>
+                            <button
+                              onClick={() => handleToggleUser(user._id)}
+                              className={`p-2 rounded-lg ${
+                                user.isActive 
+                                  ? 'bg-red-50 text-red-600' 
+                                  : 'bg-green-50 text-green-600'
+                              }`}
+                            >
+                              {user.isActive ? <Ban className="w-4 h-4" /> : <Check className="w-4 h-4" />}
+                            </button>
+                          </div>
+                          <div className="space-y-1 text-xs text-gray-600">
+                            <p><span className="font-medium">Role:</span> 
+                              <span className={`px-2 py-1 rounded-full text-xs font-medium capitalize ml-1 ${
                                 user.role === 'worker' ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700'
                               }`}>
                                 {user.role}
                               </span>
-                            </td>
-                            <td className="py-3 px-4 text-sm text-gray-500">{user.location?.city || 'N/A'}</td>
-                            <td className="py-3 px-4 text-sm text-gray-500">{new Date(user.createdAt).toLocaleDateString()}</td>
-                            <td className="py-3 px-4">
-                              {!user.isActive && (
-                                <span className="px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-700">Suspended</span>
-                              )}
-                            </td>
-                            <td className="py-3 px-4">
-                              <button
-                                onClick={() => handleToggleUser(user._id)}
-                                className={`px-3 py-1 rounded-lg text-sm font-medium ${
-                                  user.isActive 
-                                    ? 'bg-red-50 text-red-600 hover:bg-red-100' 
-                                    : 'bg-green-50 text-green-600 hover:bg-green-100'
-                                }`}
-                              >
-                                {user.isActive ? <Ban className="w-4 h-4" /> : <Check className="w-4 h-4" />}
-                              </button>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
+                            </p>
+                            <p><span className="font-medium">City:</span> {user.location?.city || 'N/A'}</p>
+                            <p><span className="font-medium">Joined:</span> {new Date(user.createdAt).toLocaleDateString()}</p>
+                            {!user.isActive && (
+                              <p className="text-red-600 font-medium">Suspended</p>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                    {/* Desktop table view */}
+                    <div className="hidden md:block overflow-x-auto -mx-4 md:mx-0">
+                      <div className="px-4 md:px-0">
+                        <table className="w-full min-w-[700px]">
+                          <thead>
+                            <tr className="border-b border-gray-200">
+                              <th className="text-left py-3 px-2 md:px-4 text-xs md:text-sm font-medium text-gray-600">Name</th>
+                              <th className="text-left py-3 px-2 md:px-4 text-xs md:text-sm font-medium text-gray-600">Email</th>
+                              <th className="text-left py-3 px-2 md:px-4 text-xs md:text-sm font-medium text-gray-600">Role</th>
+                              <th className="text-left py-3 px-2 md:px-4 text-xs md:text-sm font-medium text-gray-600">City</th>
+                              <th className="text-left py-3 px-2 md:px-4 text-xs md:text-sm font-medium text-gray-600">Joined</th>
+                              <th className="text-left py-3 px-2 md:px-4 text-xs md:text-sm font-medium text-gray-600">Status</th>
+                              <th className="text-left py-3 px-2 md:px-4 text-xs md:text-sm font-medium text-gray-600">Actions</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {users.map((user) => (
+                              <tr key={user._id} className="border-b border-gray-100">
+                                <td className="py-3 px-2 md:px-4 text-xs md:text-sm font-medium">{user.name}</td>
+                                <td className="py-3 px-2 md:px-4 text-xs md:text-sm text-gray-500">{user.email}</td>
+                                <td className="py-3 px-2 md:px-4">
+                                  <span className={`px-2 py-1 rounded-full text-xs font-medium capitalize ${
+                                    user.role === 'worker' ? 'bg-purple-100 text-purple-700' : 'bg-blue-100 text-blue-700'
+                                  }`}>
+                                    {user.role}
+                                  </span>
+                                </td>
+                                <td className="py-3 px-2 md:px-4 text-xs md:text-sm text-gray-500">{user.location?.city || 'N/A'}</td>
+                                <td className="py-3 px-2 md:px-4 text-xs md:text-sm text-gray-500">{new Date(user.createdAt).toLocaleDateString()}</td>
+                                <td className="py-3 px-2 md:px-4">
+                                  {!user.isActive && (
+                                    <span className="px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-700">Suspended</span>
+                                  )}
+                                </td>
+                                <td className="py-3 px-2 md:px-4">
+                                  <button
+                                    onClick={() => handleToggleUser(user._id)}
+                                    className={`px-3 py-1 rounded-lg text-sm font-medium ${
+                                      user.isActive 
+                                        ? 'bg-red-50 text-red-600 hover:bg-red-100' 
+                                        : 'bg-green-50 text-green-600 hover:bg-green-100'
+                                    }`}
+                                  >
+                                    {user.isActive ? <Ban className="w-4 h-4" /> : <Check className="w-4 h-4" />}
+                                  </button>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  </>
                 )}
               </div>
             </div>
@@ -350,14 +426,14 @@ export default function AdminDashboard() {
           {/* KYC Verification Page */}
           {activePage === 'kyc' && (
             <div>
-              <h2 className="text-2xl font-bold text-gray-900 mb-6">KYC Verification</h2>
-              <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-                <div className="flex gap-2 mb-6">
+              <h2 className="text-xl md:text-2xl font-bold text-gray-900 mb-4 md:mb-6">KYC Verification</h2>
+              <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 md:p-6">
+                <div className="flex overflow-x-auto gap-2 mb-6 pb-2 -mx-4 px-4 md:mx-0 md:px-0 md:pb-0 md:flex-wrap">
                   {['pending', 'approved', 'rejected'].map((filter) => (
                     <button
                       key={filter}
                       onClick={() => setKycFilter(filter)}
-                      className={`px-4 py-2 rounded-lg font-medium capitalize ${
+                      className={`px-4 py-2 rounded-lg font-medium capitalize text-sm whitespace-nowrap ${
                         kycFilter === filter ? 'bg-primary-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                       }`}
                     >
@@ -376,49 +452,67 @@ export default function AdminDashboard() {
                     <p>No KYC submissions found</p>
                   </div>
                 ) : (
-                  <div className="grid gap-6">
+                  <div className="grid gap-4 md:gap-6">
                     {kycs.map((kyc) => (
-                      <div key={kyc._id} className="border border-gray-200 rounded-lg p-6">
-                        <div className="flex flex-col md:flex-row gap-6">
-                          <div className="flex-1">
-                            <h3 className="font-semibold text-gray-900 mb-2">{kyc.worker?.name || 'Unknown'}</h3>
-                            <p className="text-sm text-gray-600 mb-1">Skills: {kyc.worker?.skills?.join(', ') || 'N/A'}</p>
-                            <p className="text-sm text-gray-600 mb-1">City: {kyc.worker?.location?.city || 'N/A'}</p>
-                            <p className="text-sm text-gray-600 mb-1">ID Type: {kyc.idType}</p>
-                            <p className="text-sm text-gray-600 mb-1">ID Number: {kyc.idNumber}</p>
-                            <p className="text-sm text-gray-500">Submitted: {new Date(kyc.createdAt).toLocaleString()}</p>
+                      <div key={kyc._id} className="border border-gray-200 rounded-lg p-4 md:p-6">
+                        <div className="flex flex-col gap-4">
+                          <div>
+                            <h3 className="font-semibold text-gray-900 mb-2 text-base md:text-lg">{kyc.worker?.name || 'Unknown'}</h3>
+                            <div className="space-y-1 text-xs md:text-sm text-gray-600">
+                              <p><span className="font-medium">Skills:</span> {kyc.worker?.skills?.join(', ') || 'N/A'}</p>
+                              <p><span className="font-medium">City:</span> {kyc.worker?.location?.city || 'N/A'}</p>
+                              <p><span className="font-medium">ID Type:</span> {kyc.idType}</p>
+                              <p><span className="font-medium">ID Number:</span> {kyc.idNumber}</p>
+                              <p className="text-gray-500"><span className="font-medium">Submitted:</span> {new Date(kyc.createdAt).toLocaleString()}</p>
+                            </div>
                           </div>
-                          <div className="flex gap-4">
+                          <div className="flex gap-3 md:gap-4 overflow-x-auto pb-2">
                             {kyc.idPhotoUrl && (
-                              <div>
+                              <div className="flex-shrink-0">
                                 <p className="text-xs text-gray-500 mb-1">ID Photo</p>
-                                <a href={`http://localhost:5000${kyc.idPhotoUrl}`} target="_blank" rel="noopener noreferrer">
-                                  <img src={`http://localhost:5000${kyc.idPhotoUrl}`} alt="ID" className="w-24 h-24 object-cover rounded cursor-pointer hover:opacity-80" />
-                                </a>
+                                <img 
+                                  src={`http://localhost:5000${kyc.idPhotoUrl}`} 
+                                  alt="ID" 
+                                  className="w-28 h-28 md:w-32 md:h-32 object-cover rounded-lg cursor-pointer hover:opacity-80"
+                                  onLoad={() => console.log('Image loaded:', `http://localhost:5000${kyc.idPhotoUrl}`)}
+                                  onError={(e) => {
+                                    console.error('Image load error:', e.target.src);
+                                    console.error('KYC data:', kyc);
+                                    e.target.style.display = 'none';
+                                  }}
+                                />
                               </div>
                             )}
                             {kyc.selfieUrl && (
-                              <div>
+                              <div className="flex-shrink-0">
                                 <p className="text-xs text-gray-500 mb-1">Selfie</p>
-                                <a href={`http://localhost:5000${kyc.selfieUrl}`} target="_blank" rel="noopener noreferrer">
-                                  <img src={`http://localhost:5000${kyc.selfieUrl}`} alt="Selfie" className="w-24 h-24 object-cover rounded cursor-pointer hover:opacity-80" />
-                                </a>
+                                <img 
+                                  src={`http://localhost:5000${kyc.selfieUrl}`} 
+                                  alt="Selfie" 
+                                  className="w-28 h-28 md:w-32 md:h-32 object-cover rounded-lg cursor-pointer hover:opacity-80"
+                                  onLoad={() => console.log('Image loaded:', `http://localhost:5000${kyc.selfieUrl}`)}
+                                  onError={(e) => {
+                                    console.error('Image load error:', e.target.src);
+                                    console.error('KYC data:', kyc);
+                                    e.target.style.display = 'none';
+                                  }}
+                                />
                               </div>
                             )}
                           </div>
                         </div>
                         {kyc.status === 'pending' && (
-                          <div className="flex gap-3 mt-4 pt-4 border-t border-gray-100">
+                          <div className="flex flex-col sm:flex-row gap-3 mt-4 pt-4 border-t border-gray-100">
                             <button
                               onClick={() => handleKYCReview(kyc._id, 'approved')}
-                              className="flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
+                              className="flex items-center justify-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm"
                             >
                               <CheckCircle className="w-4 h-4 mr-2" />
                               Approve
                             </button>
                             <button
                               onClick={() => setRejectionModal({ show: true, kycId: kyc._id, reason: '' })}
-                              className="flex items-center px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
+                              className="flex items-center justify-center px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 text-sm"
                             >
                               <XCircle className="w-4 h-4 mr-2" />
                               Reject
@@ -427,12 +521,12 @@ export default function AdminDashboard() {
                         )}
                         {kyc.status === 'approved' && (
                           <div className="mt-4 pt-4 border-t border-gray-100">
-                            <span className="text-green-600 font-medium">✓ Approved on {new Date(kyc.reviewedAt).toLocaleDateString()}</span>
+                            <span className="text-green-600 font-medium text-sm md:text-base">✓ Approved on {new Date(kyc.reviewedAt).toLocaleDateString()}</span>
                           </div>
                         )}
                         {kyc.status === 'rejected' && (
                           <div className="mt-4 pt-4 border-t border-gray-100">
-                            <span className="text-red-600 font-medium">✗ Rejected: {kyc.rejectionReason}</span>
+                            <span className="text-red-600 font-medium text-sm md:text-base">✗ Rejected: {kyc.rejectionReason}</span>
                           </div>
                         )}
                       </div>
@@ -446,14 +540,14 @@ export default function AdminDashboard() {
           {/* Bookings Page */}
           {activePage === 'bookings' && (
             <div>
-              <h2 className="text-2xl font-bold text-gray-900 mb-6">Bookings Management</h2>
-              <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-                <div className="flex gap-2 mb-6">
+              <h2 className="text-xl md:text-2xl font-bold text-gray-900 mb-4 md:mb-6">Bookings Management</h2>
+              <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 md:p-6">
+                <div className="flex flex-wrap gap-2 mb-6">
                   {['all', 'pending', 'completed', 'cancelled'].map((filter) => (
                     <button
                       key={filter}
                       onClick={() => setBookingFilter(filter)}
-                      className={`px-4 py-2 rounded-lg font-medium capitalize ${
+                      className={`px-3 md:px-4 py-2 rounded-lg font-medium capitalize text-sm ${
                         bookingFilter === filter ? 'bg-primary-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                       }`}
                     >
@@ -467,42 +561,75 @@ export default function AdminDashboard() {
                     <Loader2 className="w-8 h-8 animate-spin text-primary-600" />
                   </div>
                 ) : (
-                  <div className="overflow-x-auto">
-                    <table className="w-full">
-                      <thead>
-                        <tr className="border-b border-gray-200">
-                          <th className="text-left py-3 px-4 text-sm font-medium text-gray-600">Client</th>
-                          <th className="text-left py-3 px-4 text-sm font-medium text-gray-600">Worker</th>
-                          <th className="text-left py-3 px-4 text-sm font-medium text-gray-600">Skill</th>
-                          <th className="text-left py-3 px-4 text-sm font-medium text-gray-600">Description</th>
-                          <th className="text-left py-3 px-4 text-sm font-medium text-gray-600">Status</th>
-                          <th className="text-left py-3 px-4 text-sm font-medium text-gray-600">Date</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {bookings.map((booking) => (
-                          <tr key={booking._id} className="border-b border-gray-100">
-                            <td className="py-3 px-4 text-sm">{booking.client?.name || 'N/A'}</td>
-                            <td className="py-3 px-4 text-sm">{booking.worker?.name || 'N/A'}</td>
-                            <td className="py-3 px-4 text-sm">{booking.service || 'N/A'}</td>
-                            <td className="py-3 px-4 text-sm text-gray-500 max-w-xs truncate">{booking.description || 'N/A'}</td>
-                            <td className="py-3 px-4">
-                              <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                                booking.status === 'completed' ? 'bg-green-100 text-green-700' :
-                                booking.status === 'cancelled' ? 'bg-red-100 text-red-700' :
-                                booking.status === 'in-progress' ? 'bg-purple-100 text-purple-700' :
-                                booking.status === 'accepted' ? 'bg-blue-100 text-blue-700' :
-                                'bg-yellow-100 text-yellow-700'
-                              }`}>
-                                {booking.status}
-                              </span>
-                            </td>
-                            <td className="py-3 px-4 text-sm text-gray-500">{new Date(booking.createdAt).toLocaleDateString()}</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
+                  <>
+                    {/* Mobile card view */}
+                    <div className="md:hidden space-y-3">
+                      {bookings.map((booking) => (
+                        <div key={booking._id} className="border border-gray-200 rounded-lg p-3">
+                          <div className="flex justify-between items-start mb-2">
+                            <div>
+                              <p className="text-sm font-medium text-gray-900">{booking.client?.name || 'N/A'}</p>
+                              <p className="text-xs text-gray-500">Client</p>
+                            </div>
+                            <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                              booking.status === 'completed' ? 'bg-green-100 text-green-700' :
+                              booking.status === 'cancelled' ? 'bg-red-100 text-red-700' :
+                              booking.status === 'in-progress' ? 'bg-purple-100 text-purple-700' :
+                              booking.status === 'accepted' ? 'bg-blue-100 text-blue-700' :
+                              'bg-yellow-100 text-yellow-700'
+                            }`}>
+                              {booking.status}
+                            </span>
+                          </div>
+                          <div className="space-y-1 text-xs text-gray-600">
+                            <p><span className="font-medium">Worker:</span> {booking.worker?.name || 'N/A'}</p>
+                            <p><span className="font-medium">Service:</span> {booking.service || 'N/A'}</p>
+                            <p><span className="font-medium">Description:</span> {booking.description || 'N/A'}</p>
+                            <p><span className="font-medium">Date:</span> {new Date(booking.createdAt).toLocaleDateString()}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                    {/* Desktop table view */}
+                    <div className="hidden md:block overflow-x-auto -mx-4 md:mx-0">
+                      <div className="px-4 md:px-0">
+                        <table className="w-full min-w-[800px]">
+                          <thead>
+                            <tr className="border-b border-gray-200">
+                              <th className="text-left py-3 px-2 md:px-4 text-xs md:text-sm font-medium text-gray-600">Client</th>
+                              <th className="text-left py-3 px-2 md:px-4 text-xs md:text-sm font-medium text-gray-600">Worker</th>
+                              <th className="text-left py-3 px-2 md:px-4 text-xs md:text-sm font-medium text-gray-600">Skill</th>
+                              <th className="text-left py-3 px-2 md:px-4 text-xs md:text-sm font-medium text-gray-600">Description</th>
+                              <th className="text-left py-3 px-2 md:px-4 text-xs md:text-sm font-medium text-gray-600">Status</th>
+                              <th className="text-left py-3 px-2 md:px-4 text-xs md:text-sm font-medium text-gray-600">Date</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {bookings.map((booking) => (
+                              <tr key={booking._id} className="border-b border-gray-100">
+                                <td className="py-3 px-2 md:px-4 text-xs md:text-sm">{booking.client?.name || 'N/A'}</td>
+                                <td className="py-3 px-2 md:px-4 text-xs md:text-sm">{booking.worker?.name || 'N/A'}</td>
+                                <td className="py-3 px-2 md:px-4 text-xs md:text-sm">{booking.service || 'N/A'}</td>
+                                <td className="py-3 px-2 md:px-4 text-xs md:text-sm text-gray-500 max-w-xs truncate">{booking.description || 'N/A'}</td>
+                                <td className="py-3 px-2 md:px-4">
+                                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                                    booking.status === 'completed' ? 'bg-green-100 text-green-700' :
+                                    booking.status === 'cancelled' ? 'bg-red-100 text-red-700' :
+                                    booking.status === 'in-progress' ? 'bg-purple-100 text-purple-700' :
+                                    booking.status === 'accepted' ? 'bg-blue-100 text-blue-700' :
+                                    'bg-yellow-100 text-yellow-700'
+                                  }`}>
+                                    {booking.status}
+                                  </span>
+                                </td>
+                                <td className="py-3 px-2 md:px-4 text-xs md:text-sm text-gray-500">{new Date(booking.createdAt).toLocaleDateString()}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  </>
                 )}
               </div>
             </div>
@@ -512,8 +639,8 @@ export default function AdminDashboard() {
 
       {/* Rejection Modal */}
       {rejectionModal.show && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl p-6 w-full max-w-md">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl p-4 md:p-6 w-full max-w-md">
             <h3 className="text-lg font-semibold mb-4">Reject KYC</h3>
             <textarea
               value={rejectionModal.reason}

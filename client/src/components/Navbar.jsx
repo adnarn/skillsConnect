@@ -1,7 +1,7 @@
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useState, useEffect, useRef } from 'react';
-import { User, LogOut, Map as MapIcon, LayoutDashboard, ChevronDown } from 'lucide-react';
+import { User, LogOut, Map as MapIcon, LayoutDashboard, ChevronDown, Menu, X } from 'lucide-react';
 
 export default function Navbar() {
   const { user, logout } = useAuth();
@@ -10,6 +10,7 @@ export default function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [avatarDropdownOpen, setAvatarDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
+  const mobileMenuRef = useRef(null);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -26,6 +27,22 @@ export default function Navbar() {
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, [avatarDropdownOpen]);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (mobileMenuRef.current && !mobileMenuRef.current.contains(event.target)) {
+        setMobileMenuOpen(false);
+      }
+    };
+
+    if (mobileMenuOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [mobileMenuOpen]);
 
   const handleLogout = () => {
     logout();
@@ -87,48 +104,111 @@ export default function Navbar() {
                   </button>
 
                   {avatarDropdownOpen && (
-                    <div className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50">
-                      <div className="px-4 py-2 border-b border-gray-100">
-                        <p className="text-sm font-medium text-gray-900">{user.name}</p>
-                        <p className="text-xs text-gray-500">{user.email}</p>
-                      </div>
-                      <Link
-                        to="/profile"
-                        onClick={() => setAvatarDropdownOpen(false)}
-                        className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
-                      >
-                        <User className="w-4 h-4 mr-3" />
-                        My Profile
-                      </Link>
-                      <Link
-                        to={user.role === 'worker' ? '/worker-dashboard' : '/client-dashboard'}
-                        onClick={() => setAvatarDropdownOpen(false)}
-                        className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
-                      >
-                        <LayoutDashboard className="w-4 h-4 mr-3" />
-                        Dashboard
-                      </Link>
-                      <Link
-                        to="/map"
-                        onClick={() => setAvatarDropdownOpen(false)}
-                        className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
-                      >
-                        <MapIcon className="w-4 h-4 mr-3" />
-                        Live Map
-                      </Link>
-                      <div className="border-t border-gray-100 mt-2 pt-2">
-                        <button
-                          onClick={() => {
-                            handleLogout();
-                            setAvatarDropdownOpen(false);
-                          }}
-                          className="flex items-center w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50"
+                    <>
+                      {/* Mobile backdrop */}
+                      <div className="md:hidden fixed inset-0 bg-black bg-opacity-50 z-40" onClick={() => setAvatarDropdownOpen(false)} />
+                      
+                      {/* Desktop dropdown */}
+                      <div className="hidden md:block absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-200 py-2 z-50">
+                        <div className="px-4 py-2 border-b border-gray-100">
+                          <p className="text-sm font-medium text-gray-900">{user.name}</p>
+                          <p className="text-xs text-gray-500">{user.email}</p>
+                        </div>
+                        <Link
+                          to="/profile"
+                          onClick={() => setAvatarDropdownOpen(false)}
+                          className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
                         >
-                          <LogOut className="w-4 h-4 mr-3" />
-                          Logout
-                        </button>
+                          <User className="w-4 h-4 mr-3" />
+                          My Profile
+                        </Link>
+                        <Link
+                          to={user.role === 'worker' ? '/worker-dashboard' : '/client-dashboard'}
+                          onClick={() => setAvatarDropdownOpen(false)}
+                          className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                        >
+                          <LayoutDashboard className="w-4 h-4 mr-3" />
+                          Dashboard
+                        </Link>
+                        <Link
+                          to="/map"
+                          onClick={() => setAvatarDropdownOpen(false)}
+                          className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                        >
+                          <MapIcon className="w-4 h-4 mr-3" />
+                          Live Map
+                        </Link>
+                        <div className="border-t border-gray-100 mt-2 pt-2">
+                          <button
+                            onClick={() => {
+                              handleLogout();
+                              setAvatarDropdownOpen(false);
+                            }}
+                            className="flex items-center w-full px-4 py-2 text-sm text-red-600 hover:bg-red-50"
+                          >
+                            <LogOut className="w-4 h-4 mr-3" />
+                            Logout
+                          </button>
+                        </div>
                       </div>
-                    </div>
+
+                      {/* Mobile bottom sheet */}
+                      <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white rounded-t-xl shadow-2xl border-t border-gray-200 z-50 transform transition-transform duration-300">
+                        <div className="p-4">
+                          <div className="w-12 h-1 bg-gray-300 rounded-full mx-auto mb-4" />
+                          <div className="flex items-center space-x-3 px-3 py-3 border-b border-gray-100 mb-3">
+                            <div 
+                              className="w-10 h-10 rounded-full flex items-center justify-center text-white text-lg font-bold"
+                              style={{ backgroundColor: user.avatarColor || '#1D9E75' }}
+                            >
+                              {user.name?.charAt(0).toUpperCase()}
+                            </div>
+                            <div>
+                              <p className="text-sm font-medium text-gray-900">{user.name}</p>
+                              <p className="text-xs text-gray-500">{user.email}</p>
+                            </div>
+                          </div>
+                          <div className="flex flex-col space-y-1">
+                            <Link
+                              to="/profile"
+                              onClick={() => setAvatarDropdownOpen(false)}
+                              className="flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 rounded-lg"
+                            >
+                              <User className="w-5 h-5 mr-3" />
+                              My Profile
+                            </Link>
+                            <Link
+                              to={user.role === 'worker' ? '/worker-dashboard' : '/client-dashboard'}
+                              onClick={() => setAvatarDropdownOpen(false)}
+                              className="flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 rounded-lg"
+                            >
+                              <LayoutDashboard className="w-5 h-5 mr-3" />
+                              Dashboard
+                            </Link>
+                            <Link
+                              to="/map"
+                              onClick={() => setAvatarDropdownOpen(false)}
+                              className="flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 rounded-lg"
+                            >
+                              <MapIcon className="w-5 h-5 mr-3" />
+                              Live Map
+                            </Link>
+                            <div className="border-t border-gray-100 mt-2 pt-2">
+                              <button
+                                onClick={() => {
+                                  handleLogout();
+                                  setAvatarDropdownOpen(false);
+                                }}
+                                className="flex items-center w-full px-4 py-3 text-sm text-red-600 hover:bg-red-50 rounded-lg"
+                              >
+                                <LogOut className="w-5 h-5 mr-3" />
+                                Logout
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </>
                   )}
                 </div>
               </>
@@ -151,25 +231,46 @@ export default function Navbar() {
           </div>
 
           {/* Mobile menu button */}
-          <div className="md:hidden flex items-center">
+          <div className="md:hidden flex items-center space-x-2">
+            {user && (
+              <button
+                onClick={() => setAvatarDropdownOpen(!avatarDropdownOpen)}
+                className="p-1 rounded-lg hover:bg-gray-100 transition-colors"
+              >
+                <div 
+                  className="w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-bold"
+                  style={{ backgroundColor: user.avatarColor || '#1D9E75' }}
+                >
+                  {user.name?.charAt(0).toUpperCase()}
+                </div>
+              </button>
+            )}
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               className="text-gray-700 hover:text-gray-900 p-2"
             >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                {mobileMenuOpen ? (
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                ) : (
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-                )}
-              </svg>
+              {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
             </button>
           </div>
         </div>
 
         {/* Mobile Navigation */}
         {mobileMenuOpen && (
-          <div className="md:hidden py-4 border-t border-gray-200">
+          <div className="md:hidden py-4 border-t border-gray-200" ref={mobileMenuRef}>
+            {user && (
+              <div className="flex items-center space-x-3 px-3 py-3 border-b border-gray-100 mb-3">
+                <div 
+                  className="w-10 h-10 rounded-full flex items-center justify-center text-white text-lg font-bold"
+                  style={{ backgroundColor: user.avatarColor || '#1D9E75' }}
+                >
+                  {user.name?.charAt(0).toUpperCase()}
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-900">{user.name}</p>
+                  <p className="text-xs text-gray-500">{user.email}</p>
+                </div>
+              </div>
+            )}
             <div className="flex flex-col space-y-2">
               <Link to="/" className={navLinkClass('/')} onClick={() => setMobileMenuOpen(false)}>Home</Link>
               <Link to="/explore" className={navLinkClass('/explore')} onClick={() => setMobileMenuOpen(false)}>Explore</Link>

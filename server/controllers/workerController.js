@@ -2,7 +2,7 @@ import User from '../models/User.js';
 
 export const getWorkers = async (req, res) => {
   try {
-    const { skill, location, minRating } = req.query;
+    const { skill, location, minRating, verified } = req.query;
     
     let query = { role: 'worker' };
     
@@ -16,6 +16,10 @@ export const getWorkers = async (req, res) => {
     
     if (minRating) {
       query.rating = { $gte: parseFloat(minRating) };
+    }
+
+    if (verified === 'true') {
+      query.isVerified = true;
     }
 
     const workers = await User.find(query).select('-password');

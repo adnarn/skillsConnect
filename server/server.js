@@ -5,14 +5,14 @@ import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
+dotenv.config();
+
 import authRoutes from './routes/auth.js';
 import workerRoutes from './routes/workers.js';
 import bookingRoutes from './routes/bookings.js';
 import mapRoutes from './routes/map.js';
 import kycRoutes from './routes/kyc.js';
 import adminRoutes from './routes/admin.js';
-
-dotenv.config();
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);

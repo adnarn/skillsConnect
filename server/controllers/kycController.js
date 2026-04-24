@@ -23,8 +23,8 @@ export const submitKYC = async (req, res) => {
       fullName,
       idType,
       idNumber,
-      idPhotoUrl: req.files['idPhoto']?.[0]?.path,
-      selfieUrl: req.files['selfie']?.[0]?.path,
+      idPhotoUrl: `/uploads/${req.files['idPhoto']?.[0]?.filename}`,
+      selfieUrl: `/uploads/${req.files['selfie']?.[0]?.filename}`,
       address,
       phone
     });
@@ -53,8 +53,12 @@ export const getAllKYC = async (req, res) => {
     const filter = status ? { status } : {};
     
     const kycs = await KYC.find(filter)
-      .populate('worker', 'name email skills location')
-      .sort({ createdAt: -1 });
+      .populate({
+        path: 'worker',
+        select: 'name email skills location'
+      })
+      .sort({ createdAt: -1 })
+      .lean();
     
     res.json(kycs);
   } catch (error) {

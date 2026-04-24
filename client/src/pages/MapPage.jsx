@@ -251,14 +251,24 @@ export default function MapPage() {
 
   return (
     <div className="relative h-[calc(100vh-64px)] w-full">
-      {/* Left Sidebar / Mobile Bottom Sheet */}
+      {/* Left Sidebar / Mobile Bottom Sheet / Tablet Collapsible Panel */}
       <div className={`
         absolute z-20 bg-white shadow-lg overflow-hidden
-        md:left-4 md:top-4 md:w-96 md:max-h-[calc(100vh-100px)] md:rounded-2xl
+        lg:left-4 lg:top-4 lg:w-96 lg:max-h-[calc(100vh-100px)] lg:rounded-2xl lg:bottom-auto
+        md:left-0 md:top-0 md:w-80 md:h-full md:bottom-auto md:transition-transform md:duration-300
+        ${mobilePanelOpen ? 'md:translate-x-0' : 'md:-translate-x-full'}
         ${mobilePanelOpen ? 'bottom-0 h-[60vh]' : 'bottom-0 h-16'} 
-        left-0 right-0 md:bottom-auto
+        left-0 right-0 lg:bottom-auto
         transition-all duration-300
       `}>
+        {/* Tablet Toggle Tab */}
+        <button 
+          onClick={() => setMobilePanelOpen(!mobilePanelOpen)}
+          className="hidden md:flex lg:hidden absolute right-0 top-1/2 -translate-y-1/2 translate-x-full bg-white shadow-lg p-3 rounded-r-lg hover:bg-gray-50 z-30"
+        >
+          {mobilePanelOpen ? <ChevronDown className="w-5 h-5 text-gray-600" /> : <ChevronUp className="w-5 h-5 text-gray-600" />}
+        </button>
+        
         {/* Mobile Handle */}
         <button 
           onClick={() => setMobilePanelOpen(!mobilePanelOpen)}
@@ -266,6 +276,15 @@ export default function MapPage() {
         >
           {mobilePanelOpen ? <ChevronDown className="w-6 h-6 text-gray-400" /> : <ChevronUp className="w-6 h-6 text-gray-400" />}
         </button>
+        
+        {/* Mobile Collapsed State Summary */}
+        {!mobilePanelOpen && (
+          <div className="px-4 pb-2 md:hidden">
+            <p className="text-sm text-gray-600 text-center">
+              {workers.length} workers nearby
+            </p>
+          </div>
+        )}
         
         <div className="p-4 h-full overflow-y-auto">
           {/* Title */}
@@ -371,28 +390,28 @@ export default function MapPage() {
                 }`}
               >
                 <div className="flex items-start gap-3">
-                  <div className="w-10 h-10 bg-gradient-to-br from-primary-500 to-primary-700 rounded-full flex items-center justify-center text-white font-bold text-lg">
+                  <div className="w-10 h-10 bg-gradient-to-br from-primary-500 to-primary-700 rounded-full flex items-center justify-center text-white font-bold text-lg flex-shrink-0">
                     {worker.name?.charAt(0)}
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
                       <span className="font-semibold text-gray-900 truncate">{worker.name}</span>
                       {worker.availability && (
-                        <span className="w-2 h-2 bg-green-500 rounded-full" title="Available" />
+                        <span className="w-2 h-2 bg-green-500 rounded-full flex-shrink-0" title="Available" />
                       )}
                     </div>
                     <div className="flex items-center text-sm text-gray-500 mt-1">
                       <span className="mr-2">{skillEmojis[worker.skills?.[0]?.toLowerCase()] || '🔧'}</span>
-                      <span className="capitalize">{worker.skills?.[0]}</span>
-                      <span className="mx-2">•</span>
-                      <Navigation className="w-3 h-3 mr-1" />
-                      {formatDistance(worker.distance)}
+                      <span className="capitalize truncate">{worker.skills?.[0]}</span>
+                      <span className="mx-2 flex-shrink-0">•</span>
+                      <Navigation className="w-3 h-3 mr-1 flex-shrink-0" />
+                      <span className="truncate">{formatDistance(worker.distance)}</span>
                     </div>
                     <div className="flex items-center mt-1">
-                      <Star className="w-4 h-4 text-yellow-400 fill-yellow-400 mr-1" />
+                      <Star className="w-4 h-4 text-yellow-400 fill-yellow-400 mr-1 flex-shrink-0" />
                       <span className="text-sm text-gray-700">{worker.rating?.toFixed(1) || '0.0'}</span>
-                      <span className="mx-2 text-gray-300">|</span>
-                      <span className="text-sm text-gray-600">
+                      <span className="mx-2 text-gray-300 flex-shrink-0">|</span>
+                      <span className="text-sm text-gray-600 truncate">
                         ₦{worker.priceRange?.min?.toLocaleString()} - ₦{worker.priceRange?.max?.toLocaleString()}
                       </span>
                     </div>
@@ -506,6 +525,15 @@ export default function MapPage() {
           )
         ))}
       </MapContainer>
+
+      {/* Mobile Use My Location Button */}
+      <button
+        onClick={getClientLocation}
+        className="md:hidden absolute bottom-20 right-4 z-20 w-12 h-12 bg-primary-600 rounded-full shadow-lg flex items-center justify-center hover:bg-primary-700 transition-colors"
+        title="Use My Location"
+      >
+        <Crosshair className="w-6 h-6 text-white" />
+      </button>
 
       {/* Recenter Button */}
       <button

@@ -1,6 +1,8 @@
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
 import User from './models/User.js';
+import Booking from './models/Booking.js';
+import KYC from './models/KYC.js';
 
 dotenv.config();
 
@@ -175,6 +177,8 @@ async function seedDatabase() {
     // Clear existing data
     console.log('Clearing existing data...');
     await User.deleteMany({});
+    await Booking.deleteMany({});
+    await KYC.deleteMany({});
 
     // Create superadmin
     console.log('Creating admin...');
@@ -251,6 +255,42 @@ async function seedDatabase() {
     });
     await Promise.all(clientPromises);
     console.log(`Created ${clients.length} clients`);
+
+    // Create sample bookings
+    console.log('Creating sample bookings...');
+    const createdWorkers = await User.find({ role: 'worker' });
+    const createdClients = await User.find({ role: 'client' });
+    
+    console.log(`Found ${createdWorkers.length} workers and ${createdClients.length} clients`);
+    
+    if (createdWorkers.length > 0 && createdClients.length > 0) {
+      const sampleBookings = [
+        {
+          client: createdClients[0]._id,
+          worker: createdWorkers[0]._id,
+          service: createdWorkers[0].skills[0],
+          description: 'my toilet pipe is leaking and i need some assistence',
+          date: new Date(),
+          status: 'completed',
+          price: 5000,
+          address: 'Lagos'
+        },
+        {
+          client: createdClients[1]._id,
+          worker: createdWorkers[1]._id,
+          service: createdWorkers[1].skills[0],
+          description: 'Need electrical wiring for my new apartment',
+          date: new Date(),
+          status: 'pending',
+          price: 8000,
+          address: 'Abuja'
+        }
+      ];
+      await Booking.create(sampleBookings);
+      console.log('Created sample bookings');
+    } else {
+      console.log('Skipping bookings - not enough workers or clients');
+    }
 
     console.log('\nSeed completed successfully!');
     console.log('\nDemo accounts:');

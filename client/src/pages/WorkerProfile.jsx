@@ -114,21 +114,21 @@ export default function WorkerProfile() {
             <span className="text-gray-900">{worker.name}</span>
           </nav>
 
-          <div className="flex flex-col md:flex-row items-start md:items-center gap-6">
-            <div className="w-24 h-24 bg-gradient-to-br from-primary-500 to-primary-700 rounded-full flex items-center justify-center text-white text-3xl font-bold">
+          <div className="flex flex-col md:flex-row items-start md:items-center gap-4 md:gap-6">
+            <div className="w-20 h-20 md:w-24 md:h-24 bg-gradient-to-br from-primary-500 to-primary-700 rounded-full flex items-center justify-center text-white text-2xl md:text-3xl font-bold flex-shrink-0">
               {worker.name.split(' ').map(n => n[0]).join('')}
             </div>
-            <div className="flex-1">
-              <div className="flex items-center gap-3 mb-2">
-                <h1 className="text-3xl font-bold text-gray-900">{worker.name}</h1>
+            <div className="flex-1 text-center md:text-left">
+              <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-3 mb-2">
+                <h1 className="text-2xl md:text-3xl font-bold text-gray-900">{worker.name}</h1>
                 {isVerified && (
-                  <span className="flex items-center text-green-600 text-sm font-medium bg-green-50 px-3 py-1 rounded-full">
+                  <span className="flex items-center justify-center md:justify-start text-green-600 text-sm font-medium bg-green-50 px-3 py-1 rounded-full">
                     <CheckCircle className="w-4 h-4 mr-1" />
                     Verified
                   </span>
                 )}
               </div>
-              <div className="flex flex-wrap items-center gap-4 text-gray-600">
+              <div className="flex flex-wrap items-center justify-center md:justify-start gap-2 md:gap-4 text-gray-600 text-sm md:text-base">
                 <span className="flex items-center">
                   <MapPin className="w-4 h-4 mr-1" />
                   {worker.location?.address || worker.location?.city || 'Nigeria'}
@@ -143,10 +143,10 @@ export default function WorkerProfile() {
                 </span>
               </div>
             </div>
-            <div className="flex items-center gap-3">
+            <div className="flex flex-col sm:flex-row items-center gap-3 w-full md:w-auto">
               <button
                 onClick={handleShareProfile}
-                className="flex items-center px-4 py-2 border border-gray-200 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
+                className="flex items-center justify-center px-4 py-2 border border-gray-200 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors w-full sm:w-auto"
               >
                 <Copy className="w-4 h-4 mr-2" />
                 Share Profile
@@ -154,7 +154,7 @@ export default function WorkerProfile() {
               {user?.role === 'client' && (
                 <button
                   onClick={() => setShowBookingModal(true)}
-                  className="bg-primary-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-primary-700 transition-colors"
+                  className="bg-primary-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-primary-700 transition-colors w-full sm:w-auto"
                 >
                   Book Now
                 </button>
@@ -170,13 +170,13 @@ export default function WorkerProfile() {
           {/* Left Column - Main Info */}
           <div className="md:col-span-2 space-y-6">
             {/* Skills */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+            <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 md:p-6">
               <h2 className="text-lg font-semibold text-gray-900 mb-4">Skills</h2>
               <div className="flex flex-wrap gap-2">
                 {worker.skills.map((skill, idx) => (
                   <span
                     key={idx}
-                    className="bg-primary-50 text-primary-700 px-4 py-2 rounded-full font-medium"
+                    className="bg-primary-50 text-primary-700 px-3 md:px-4 py-2 rounded-full font-medium text-sm"
                   >
                     {skill}
                   </span>
@@ -185,25 +185,25 @@ export default function WorkerProfile() {
             </div>
 
             {/* Bio */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+            <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 md:p-6">
               <h2 className="text-lg font-semibold text-gray-900 mb-4">About</h2>
-              <p className="text-gray-600 leading-relaxed">{worker.bio}</p>
+              <p className="text-gray-600 leading-relaxed text-sm md:text-base">{worker.bio}</p>
             </div>
 
             {/* Experience */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+            <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 md:p-6">
               <h2 className="text-lg font-semibold text-gray-900 mb-4">Experience</h2>
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
-                  <span className="text-gray-600">Years of Experience</span>
+                  <span className="text-gray-600 text-sm md:text-base">Years of Experience</span>
                   <span className="font-semibold text-gray-900">{worker.experience} years</span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-gray-600">Completed Jobs</span>
+                  <span className="text-gray-600 text-sm md:text-base">Completed Jobs</span>
                   <span className="font-semibold text-gray-900">{worker.completedJobs}</span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-gray-600">Rating</span>
+                  <span className="text-gray-600 text-sm md:text-base">Rating</span>
                   <div className="flex items-center">
                     <Star className="w-5 h-5 text-yellow-400 fill-yellow-400 mr-1" />
                     <span className="font-semibold text-gray-900">{worker.rating.toFixed(1)}</span>
@@ -214,18 +214,18 @@ export default function WorkerProfile() {
           </div>
 
           {/* Right Column - Pricing & Stats */}
-          <div className="space-y-6">
+          <div className="space-y-6 md:sticky md:top-20 md:self-start">
             {/* Pricing */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+            <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 md:p-6">
               <h2 className="text-lg font-semibold text-gray-900 mb-4">Pricing</h2>
-              <div className="text-3xl font-bold text-primary-600 mb-2">
+              <div className="text-2xl md:text-3xl font-bold text-primary-600 mb-2">
                 ₦{worker.priceRange.min.toLocaleString()} - ₦{worker.priceRange.max.toLocaleString()}
               </div>
               <p className="text-gray-500 text-sm">per job</p>
               {user?.role === 'worker' && user?.id === (worker._id || worker.id) && (
                 <div className="mt-4 pt-4 border-t border-gray-100">
                   <div className="text-sm text-gray-600">Est. Earnings</div>
-                  <div className="text-xl font-semibold text-green-600">
+                  <div className="text-lg md:text-xl font-semibold text-green-600">
                     ₦{estimatedEarnings.toLocaleString()}
                   </div>
                 </div>
@@ -233,7 +233,7 @@ export default function WorkerProfile() {
             </div>
 
             {/* Availability */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+            <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 md:p-6">
               <h2 className="text-lg font-semibold text-gray-900 mb-4">Availability</h2>
               <div className={`flex items-center ${worker.availability ? 'text-green-600' : 'text-red-600'}`}>
                 <div className={`w-3 h-3 rounded-full mr-2 ${worker.availability ? 'bg-green-500' : 'bg-red-500'}`} />
@@ -242,15 +242,15 @@ export default function WorkerProfile() {
             </div>
 
             {/* Contact */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+            <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 md:p-6">
               <h2 className="text-lg font-semibold text-gray-900 mb-4">Contact Info</h2>
               <div className="space-y-3">
-                <div className="flex items-center text-gray-600">
+                <div className="flex items-center text-gray-600 text-sm md:text-base">
                   <MapPin className="w-5 h-5 mr-3 text-gray-400" />
                   {worker.location?.address || worker.location?.city || 'Nigeria'}
                 </div>
                 {user && (
-                  <div className="flex items-center text-gray-600">
+                  <div className="flex items-center text-gray-600 text-sm md:text-base">
                     <MessageSquare className="w-5 h-5 mr-3 text-gray-400" />
                     <button className="text-primary-600 hover:text-primary-700">
                       Send Message
