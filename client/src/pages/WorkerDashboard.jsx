@@ -3,10 +3,11 @@ import { Link } from 'react-router-dom';
 import api from '../api';
 import { useAuth } from '../context/AuthContext';
 import useLocationBroadcast from '../hooks/useLocationBroadcast';
+import ChatBox from '../components/ChatBox';
 import { 
   Calendar, MapPin, DollarSign, Clock, CheckCircle, 
   Loader2, User, Briefcase, XCircle, PlayCircle, 
-  ToggleLeft, ToggleRight, Wallet, Radio
+  ToggleLeft, ToggleRight, Wallet, Radio, MessageCircle
 } from 'lucide-react';
 
 const statusColors = {
@@ -30,6 +31,7 @@ export default function WorkerDashboard() {
   const { isBroadcasting } = useLocationBroadcast();
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [openChatId, setOpenChatId] = useState(null);
   const [stats, setStats] = useState({
     total: 0,
     pending: 0,
@@ -80,6 +82,10 @@ export default function WorkerDashboard() {
     } catch (error) {
       console.error('Error toggling availability:', error);
     }
+  };
+
+  const toggleChat = (bookingId) => {
+    setOpenChatId(openChatId === bookingId ? null : bookingId);
   };
 
   // Calculate estimated earnings
@@ -228,6 +234,15 @@ export default function WorkerDashboard() {
                         <span className={`px-3 py-1 rounded-full text-xs font-medium ${statusColors[booking.status]}`}>
                           {statusLabels[booking.status]}
                         </span>
+                        {(booking.status === 'accepted' || booking.status === 'in-progress' || booking.status === 'completed') && (
+                          <button
+                            onClick={() => toggleChat(booking._id)}
+                            className="flex items-center gap-1 px-3 py-1 bg-gray-100 hover:bg-gray-200 rounded-full text-xs font-medium text-gray-700 transition-colors"
+                          >
+                            <MessageCircle className="w-3 h-3" />
+                            Chat
+                          </button>
+                        )}
                       </div>
                       <p className="text-gray-600 text-sm mb-3">{booking.description}</p>
                       <div className="flex flex-wrap items-center gap-3 md:gap-4 text-xs md:text-sm text-gray-500">
@@ -290,6 +305,15 @@ export default function WorkerDashboard() {
                       )}
                     </div>
                   </div>
+                  {openChatId === booking._id && (
+                    <div className="mt-4 pt-4 border-t border-gray-100">
+                      <ChatBox
+                        bookingId={booking._id}
+                        otherUserName={booking.client?.name || 'Client'}
+                        onClose={() => setOpenChatId(null)}
+                      />
+                    </div>
+                  )}
                 </div>
               ))}
             </div>

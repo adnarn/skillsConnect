@@ -4,6 +4,8 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { createServer } from 'http';
+import { Server } from 'socket.io';
 
 dotenv.config();
 
@@ -13,11 +15,19 @@ import bookingRoutes from './routes/bookings.js';
 import mapRoutes from './routes/map.js';
 import kycRoutes from './routes/kyc.js';
 import adminRoutes from './routes/admin.js';
+import chatRoutes from './routes/chat.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
+const httpServer = createServer(app);
+const io = new Server(httpServer, {
+  cors: {
+    origin: ['http://localhost:5174', 'http://localhost:5173', 'http://localhost:3000', 'https://skills-connect-flhj.vercel.app'],
+    credentials: true
+  }
+});
 
 // CORS configuration
 app.use(cors({
@@ -37,6 +47,7 @@ app.use('/api/bookings', bookingRoutes);
 app.use('/api/map', mapRoutes);
 app.use('/api/kyc', kycRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/chat', chatRoutes);
 
 // Serve frontend in production
 if (process.env.NODE_ENV === 'production') {
@@ -95,10 +106,45 @@ const MONGODB_URI = process.env.MONGODB_URI || 'mongodb+srv://dexCoder:dexcoder@
 mongoose.connect(MONGODB_URI)
   .then(() => {
     console.log('Connected to MongoDB');
-    app.listen(PORT, () => {
+    httpServer.listen(PORT, () => {
       console.log(`Server running on port ${PORT}`);
     });
   })
   .catch((error) => {
     console.error('MongoDB connection error:', error);
   });
+
+// Socket.io connection handling
+io.on('connection', (socket) => {
+  console.log('User connected:', socket.id);
+
+  // Join a booking room
+  socket.on('join-booking', (bookingId) => {
+    socket.join(`booking-${bookingId}`);
+    console.log(`User ${socket.id} joined booking-${bookingId}`);
+  });
+
+  // Leave a booking room
+  socket.on('leave-booking', (bookingId) => {
+    socket.leave(`booking-${bookingId}`);
+    console.log(`User ${socket.id} left booking-${bookingId}`);
+  });
+
+  // Send message event
+  socket.on('send-message', (data) => {
+    const { bookingId, message } = data;
+    io.to(`booking-${bookingId}`).emit('new-message', message);
+  });
+
+  // Typing indicator
+  socket.on('typing', (data) => {
+    const { bookingId, userId } = data;
+    socket.to(`booking-${bookingId}`).emit('user-typing', { userId });
+  });
+
+  socket.on('disconnect', () => {
+    console.log('User disconnected:', socket.id);
+  });
+});
+
+export { io };

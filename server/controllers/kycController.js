@@ -21,7 +21,7 @@ export const submitKYC = async (req, res) => {
       return res.status(400).json({ message: 'KYC already submitted' });
     }
 
-    // Get Cloudinary URLs
+    // Get file URLs (Cloudinary or local)
     const idPhotoUrl = req.files['idPhoto']?.[0]?.secure_url || req.files['idPhoto']?.[0]?.path;
     const selfieUrl = req.files['selfie']?.[0]?.secure_url || req.files['selfie']?.[0]?.path;
 

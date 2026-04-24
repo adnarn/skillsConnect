@@ -1,7 +1,8 @@
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useState, useEffect, useRef } from 'react';
-import { User, LogOut, Map as MapIcon, LayoutDashboard, ChevronDown, Menu, X } from 'lucide-react';
+import api from '../api';
+import { User, LogOut, Map as MapIcon, LayoutDashboard, ChevronDown, Menu, X, MessageCircle } from 'lucide-react';
 
 export default function Navbar() {
   const { user, logout } = useAuth();
@@ -9,6 +10,7 @@ export default function Navbar() {
   const location = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [avatarDropdownOpen, setAvatarDropdownOpen] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
   const dropdownRef = useRef(null);
   const mobileMenuRef = useRef(null);
 
@@ -43,6 +45,25 @@ export default function Navbar() {
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, [mobileMenuOpen]);
+
+  // Poll unread message count every 30 seconds
+  useEffect(() => {
+    if (!user) return;
+
+    const fetchUnreadCount = async () => {
+      try {
+        const res = await api.get('/chat/unread-count');
+        setUnreadCount(res.data.totalUnread);
+      } catch (error) {
+        console.error('Error fetching unread count:', error);
+      }
+    };
+
+    fetchUnreadCount();
+    const interval = setInterval(fetchUnreadCount, 30000);
+
+    return () => clearInterval(interval);
+  }, [user]);
 
   const handleLogout = () => {
     logout();
@@ -89,7 +110,7 @@ export default function Navbar() {
                     Dashboard
                   </Link>
                 )}
-                <div className="relative ml-4" ref={dropdownRef}>
+                <div className="relative ml-2" ref={dropdownRef}>
                   <button
                     onClick={() => setAvatarDropdownOpen(!avatarDropdownOpen)}
                     className="flex items-center space-x-2 p-1 rounded-lg hover:bg-gray-100 transition-colors"
