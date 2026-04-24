@@ -9,6 +9,18 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET
 });
 
+console.log('Cloudinary config:', {
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME ? 'SET' : 'MISSING',
+  api_key: process.env.CLOUDINARY_API_KEY ? 'SET' : 'MISSING',
+  api_secret: process.env.CLOUDINARY_API_SECRET ? 'SET' : 'MISSING'
+});
+
+// Check if Cloudinary is properly configured
+if (!process.env.CLOUDINARY_CLOUD_NAME || !process.env.CLOUDINARY_API_KEY || !process.env.CLOUDINARY_API_SECRET) {
+  console.error('ERROR: Cloudinary environment variables are missing!');
+  throw new Error('Cloudinary environment variables are required');
+}
+
 const storage = new CloudinaryStorage({
   cloudinary,
   params: {
@@ -35,5 +47,7 @@ const upload = multer({
   limits: { fileSize: 4 * 1024 * 1024 }, // 4MB (Vercel limit)
   fileFilter
 });
+
+console.log('Upload middleware initialized with CloudinaryStorage');
 
 export default upload;
