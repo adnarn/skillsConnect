@@ -4,6 +4,8 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { createServer } from 'http';
+import { Server } from 'socket.io';
 
 dotenv.config();
 
@@ -19,6 +21,13 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
+const httpServer = createServer(app);
+const io = new Server(httpServer, {
+  cors: {
+    origin: ['http://localhost:5174', 'http://localhost:5173', 'http://localhost:3000', 'https://skills-connect-flhj.vercel.app'],
+    credentials: true
+  }
+});
 
 // CORS configuration
 app.use(cors({
@@ -90,24 +99,52 @@ app.post('/api/debug/login', async (req, res) => {
   }
 });
 
-// MongoDB connection for serverless
+// MongoDB connection
+const PORT = process.env.PORT || 5000;
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb+srv://dexCoder:dexcoder@crudeapi.x0tnkno.mongodb.net/skillconnect';
 
-let cachedDb = null;
+mongoose.connect(MONGODB_URI)
+  .then(() => {
+    console.log('Connected to MongoDB');
+    httpServer.listen(PORT, () => {
+      console.log(`Server running on port ${PORT}`);
+    });
+  })
+  .catch((error) => {
+    console.error('MongoDB connection error:', error);
+  });
 
-async function connectToDatabase() {
-  if (cachedDb) {
-    return cachedDb;
-  }
+// Socket.io connection handling
+io.on('connection', (socket) => {
+  console.log('User connected:', socket.id);
 
-  await mongoose.connect(MONGODB_URI);
-  cachedDb = mongoose.connection;
-  console.log('Connected to MongoDB');
-  return cachedDb;
-}
+  // Join a booking room
+  socket.on('join-booking', (bookingId) => {
+    socket.join(`booking-${bookingId}`);
+    console.log(`User ${socket.id} joined booking-${bookingId}`);
+  });
 
-// Connect to database on startup
-connectToDatabase().catch(console.error);
+  // Leave a booking room
+  socket.on('leave-booking', (bookingId) => {
+    socket.leave(`booking-${bookingId}`);
+    console.log(`User ${socket.id} left booking-${bookingId}`);
+  });
 
-// Export for Vercel serverless
-export default app;
+  // Send message event
+  socket.on('send-message', (data) => {
+    const { bookingId, message } = data;
+    io.to(`booking-${bookingId}`).emit('new-message', message);
+  });
+
+  // Typing indicator
+  socket.on('typing', (data) => {
+    const { bookingId, userId } = data;
+    socket.to(`booking-${bookingId}`).emit('user-typing', { userId });
+  });
+
+  socket.on('disconnect', () => {
+    console.log('User disconnected:', socket.id);
+  });
+});
+
+export { io };
