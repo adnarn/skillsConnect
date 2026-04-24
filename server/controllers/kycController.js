@@ -6,6 +6,9 @@ export const submitKYC = async (req, res) => {
     const { fullName, idType, idNumber, address, phone } = req.body;
     const userId = req.userId;
 
+    console.log('KYC Submit - Files received:', req.files);
+    console.log('KYC Submit - Body:', req.body);
+
     // Check if user is a worker
     const user = await User.findById(userId);
     if (!user || user.role !== 'worker') {
@@ -18,13 +21,20 @@ export const submitKYC = async (req, res) => {
       return res.status(400).json({ message: 'KYC already submitted' });
     }
 
+    // Get Cloudinary URLs
+    const idPhotoUrl = req.files['idPhoto']?.[0]?.secure_url || req.files['idPhoto']?.[0]?.path;
+    const selfieUrl = req.files['selfie']?.[0]?.secure_url || req.files['selfie']?.[0]?.path;
+
+    console.log('KYC Submit - idPhotoUrl:', idPhotoUrl);
+    console.log('KYC Submit - selfieUrl:', selfieUrl);
+
     const kyc = new KYC({
       worker: userId,
       fullName,
       idType,
       idNumber,
-      idPhotoUrl: `/uploads/${req.files['idPhoto']?.[0]?.filename}`,
-      selfieUrl: `/uploads/${req.files['selfie']?.[0]?.filename}`,
+      idPhotoUrl,
+      selfieUrl,
       address,
       phone
     });
@@ -33,6 +43,7 @@ export const submitKYC = async (req, res) => {
 
     res.status(201).json(kyc);
   } catch (error) {
+    console.error('KYC Submit Error:', error);
     res.status(500).json({ message: error.message });
   }
 };
