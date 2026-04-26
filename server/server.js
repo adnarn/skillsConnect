@@ -16,6 +16,7 @@ import mapRoutes from './routes/map.js';
 import kycRoutes from './routes/kyc.js';
 import adminRoutes from './routes/admin.js';
 import chatRoutes from './routes/chat.js';
+import contactRoutes from './routes/contact.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -48,6 +49,7 @@ app.use('/api/map', mapRoutes);
 app.use('/api/kyc', kycRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/chat', chatRoutes);
+app.use('/api/contact', contactRoutes);
 
 // Serve frontend in production
 if (process.env.NODE_ENV === 'production') {

@@ -13,6 +13,7 @@ import AdminDashboard from './pages/AdminDashboard';
 import ClientDashboard from './pages/ClientDashboard';
 import WorkerDashboard from './pages/WorkerDashboard';
 import Pricing from './pages/Pricing';
+import ContactPage from './pages/ContactPage';
 import NotFound from './pages/NotFound';
 
 // Protected route component
@@ -104,6 +105,7 @@ function AppContent() {
           />
           <Route path="/explore" element={<Explore />} />
           <Route path="/pricing" element={<Pricing />} />
+          <Route path="/contact" element={<ContactPage />} />
           <Route path="/map" element={<MapPage />} />
           <Route path="/worker/:id" element={<WorkerProfile />} />
           <Route 

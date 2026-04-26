@@ -99,6 +99,7 @@ export default function Navbar() {
             <Link to="/explore" className={navLinkClass('/explore')}>Explore</Link>
             <Link to="/pricing" className={navLinkClass('/pricing')}>Pricing</Link>
             <Link to="/map" className={navLinkClass('/map')}>Map</Link>
+            <Link to="/contact" className={navLinkClass('/contact')}>Contact</Link>
             
             {user ? (
               <>
@@ -298,6 +299,7 @@ export default function Navbar() {
               <Link to="/explore" className={navLinkClass('/explore')} onClick={() => setMobileMenuOpen(false)}>Explore</Link>
               <Link to="/pricing" className={navLinkClass('/pricing')} onClick={() => setMobileMenuOpen(false)}>Pricing</Link>
               <Link to="/map" className={navLinkClass('/map')} onClick={() => setMobileMenuOpen(false)}>Map</Link>
+              <Link to="/contact" className={navLinkClass('/contact')} onClick={() => setMobileMenuOpen(false)}>Contact</Link>
               
               {user ? (
                 <>
