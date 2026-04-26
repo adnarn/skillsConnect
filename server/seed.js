@@ -8,148 +8,261 @@ dotenv.config();
 
 const MONGODB_URI = process.env.MONGODB_URI;
 
-// City coordinates mapping (GeoJSON format: [longitude, latitude])
-const cityCoordinates = {
-  'Lagos': { coordinates: [3.3792, 6.5244] },
-  'Katsina': { coordinates: [7.6017, 12.9908] },
-  'Enugu': { coordinates: [7.5464, 6.4584] },
-  'Kano': { coordinates: [8.5920, 12.0022] },
-  'Ibadan': { coordinates: [3.9470, 7.3775] },
-  'Kaduna': { coordinates: [7.4383, 10.5222] },
-  'Abuja': { coordinates: [7.3986, 9.0765] },
-  'Port Harcourt': { coordinates: [7.0498, 4.8156] },
-  'Owerri': { coordinates: [7.0350, 5.4836] }
-};
+// User's location base coordinates (GeoJSON format: [longitude, latitude])
+// 12°57'19.8"N+7°37'38.7"E
+const baseCoordinates = [7.62745, 12.9555];
 
-// Add random offset to prevent perfect overlap (±0.01 degrees ~ 1km)
-function addRandomOffset(coordinates) {
-  const offset = 0.01;
+// Add random offset to prevent perfect overlap (±0.005 to ±0.05 degrees)
+function addRandomOffset() {
+  const offset = 0.005 + Math.random() * 0.045;
   return [
-    coordinates[0] + (Math.random() - 0.5) * offset * 2,
-    coordinates[1] + (Math.random() - 0.5) * offset * 2
+    baseCoordinates[0] + (Math.random() - 0.5) * offset * 2,
+    baseCoordinates[1] + (Math.random() - 0.5) * offset * 2
   ];
 }
 
+const avatarColors = ['#1D9E75', '#0F6E56', '#065A82', '#6D2E46', '#B85042'];
+
 const workers = [
   {
-    name: 'Emeka Okafor',
-    email: 'emeka@demo.com',
+    name: 'Abdullahi Musa',
+    email: 'abdullahi@skillconnect.com',
     skills: ['plumber'],
-    location: 'Lagos',
-    experience: 8,
+    experience: 6,
     priceRange: { min: 3000, max: 15000 },
-    bio: 'Professional plumber with 8 years of experience in residential and commercial plumbing. Expert in pipe fitting, leak repairs, and bathroom installations. Available for emergency repairs and maintenance work.',
+    bio: 'Expert in pipe fitting, borehole repairs, and bathroom installations. 6 years serving Dutsin-Ma.',
     rating: 4.7,
     reviewCount: 32,
-    completedJobs: 45
+    completedJobs: 45,
+    isVerified: true
   },
   {
-    name: 'Musa Abdullahi',
-    email: 'musa@demo.com',
+    name: 'Ibrahim Suleiman',
+    email: 'ibrahim@skillconnect.com',
     skills: ['electrician'],
-    location: 'Katsina',
-    experience: 5,
+    experience: 8,
     priceRange: { min: 2500, max: 12000 },
-    bio: 'Certified electrician specializing in household electrical installations, wiring, and repairs. Experienced in solar panel installations and inverter setups. Committed to safety and quality workmanship.',
-    rating: 4.5,
-    reviewCount: 18,
-    completedJobs: 28
+    bio: 'Licensed electrician. Solar installation, wiring, and generator repairs. Available 24/7.',
+    rating: 4.8,
+    reviewCount: 40,
+    completedJobs: 62,
+    isVerified: true
   },
   {
-    name: 'Chidi Nwosu',
-    email: 'chidi@demo.com',
+    name: 'Usman Garba',
+    email: 'usman@skillconnect.com',
     skills: ['carpenter'],
-    location: 'Enugu',
     experience: 10,
     priceRange: { min: 5000, max: 25000 },
-    bio: 'Master carpenter with a decade of experience in furniture making, woodwork, and home fittings. Specializes in custom cabinets, wardrobes, and interior woodwork. Known for precision and durability.',
+    bio: 'Custom furniture, doors, windows and roofing. Quality guaranteed.',
     rating: 4.9,
-    reviewCount: 40,
-    completedJobs: 78
+    reviewCount: 45,
+    completedJobs: 78,
+    isVerified: true
   },
   {
-    name: 'Aminu Bello',
-    email: 'aminu@demo.com',
+    name: 'Aliyu Yusuf',
+    email: 'aliyu@skillconnect.com',
     skills: ['painter'],
-    location: 'Kano',
-    experience: 3,
+    experience: 5,
     priceRange: { min: 2000, max: 8000 },
-    bio: 'Skilled painter offering interior and exterior painting services. Experienced in decorative finishes, wall textures, and color consultation. Clean, efficient, and detail-oriented work.',
-    rating: 4.2,
-    reviewCount: 12,
-    completedJobs: 15
+    bio: 'Interior and exterior painting. Affordable rates, clean finishes.',
+    rating: 4.5,
+    reviewCount: 22,
+    completedJobs: 35,
+    isVerified: true
   },
   {
-    name: 'Tunde Adeyemi',
-    email: 'tunde@demo.com',
+    name: 'Musa Abdulkadir',
+    email: 'musa@skillconnect.com',
     skills: ['mechanic'],
-    location: 'Ibadan',
-    experience: 7,
+    experience: 10,
     priceRange: { min: 4000, max: 20000 },
-    bio: 'Automotive mechanic with expertise in engine repairs, diagnostics, and maintenance. Works on all vehicle types including cars, buses, and motorcycles. Provides reliable and honest service.',
+    bio: 'Auto repairs, engine overhaul, and diagnostics. 10 years experience.',
     rating: 4.6,
-    reviewCount: 25,
-    completedJobs: 52
+    reviewCount: 38,
+    completedJobs: 65,
+    isVerified: true
   },
   {
-    name: 'Yusuf Garba',
-    email: 'yusuf@demo.com',
+    name: 'Yahaya Inuwa',
+    email: 'yahaya@skillconnect.com',
     skills: ['mason'],
-    location: 'Kaduna',
-    experience: 6,
+    experience: 7,
     priceRange: { min: 3500, max: 18000 },
-    bio: 'Experienced mason specializing in bricklaying, plastering, and concrete work. Expert in building foundations, walls, and structural repairs. Delivers sturdy and long-lasting construction work.',
+    bio: 'Block laying, plastering, tiling, and concrete work.',
     rating: 4.4,
-    reviewCount: 20,
-    completedJobs: 38
+    reviewCount: 28,
+    completedJobs: 48,
+    isVerified: true
   },
   {
-    name: 'Biodun Fashola',
-    email: 'biodun@demo.com',
-    skills: ['cleaner'],
-    location: 'Abuja',
-    experience: 2,
-    priceRange: { min: 1500, max: 6000 },
-    bio: 'Professional cleaning service provider offering residential and office cleaning. Services include deep cleaning, post-construction cleaning, and regular maintenance. Reliable and thorough.',
-    rating: 4.1,
-    reviewCount: 8,
-    completedJobs: 12
-  },
-  {
-    name: 'Ifeanyi Obi',
-    email: 'ifeanyi@demo.com',
-    skills: ['welder'],
-    location: 'Port Harcourt',
-    experience: 9,
-    priceRange: { min: 4500, max: 22000 },
-    bio: 'Expert welder with 9 years of experience in metal fabrication, gate construction, and industrial welding. Specializes in stainless steel work, security doors, and custom metal designs.',
-    rating: 4.8,
-    reviewCount: 35,
-    completedJobs: 62
-  },
-  {
-    name: 'Suleiman Dankore',
-    email: 'suleiman@demo.com',
+    name: 'Abubakar Danjuma',
+    email: 'abubakar@skillconnect.com',
     skills: ['electrician'],
-    location: 'Katsina',
-    experience: 4,
-    priceRange: { min: 2000, max: 10000 },
-    bio: 'Electrician providing quality electrical services for homes and businesses. Skilled in circuit installations, lighting setups, and electrical troubleshooting. Affordable rates and prompt service.',
-    rating: 3.9,
-    reviewCount: 14,
-    completedJobs: 22
+    experience: 6,
+    priceRange: { min: 2500, max: 12000 },
+    bio: 'Electrical installations for homes and shops. Fast and reliable.',
+    rating: 4.3,
+    reviewCount: 25,
+    completedJobs: 40,
+    isVerified: true
   },
   {
-    name: 'Kelechi Eze',
-    email: 'kelechi@demo.com',
-    skills: ['carpenter'],
-    location: 'Owerri',
-    experience: 6,
+    name: 'Ismail Lawal',
+    email: 'ismail@skillconnect.com',
+    skills: ['plumber'],
+    experience: 5,
     priceRange: { min: 3000, max: 15000 },
-    bio: 'Talented carpenter creating beautiful furniture and woodwork. Specializes in chairs, tables, beds, and kitchen cabinets. Combines traditional craftsmanship with modern designs.',
+    bio: 'Water supply, sewage systems, and tank installations.',
+    rating: 4.2,
+    reviewCount: 18,
+    completedJobs: 30,
+    isVerified: true
+  },
+  {
+    name: 'Mustapha Sani',
+    email: 'mustapha@skillconnect.com',
+    skills: ['welder'],
+    experience: 8,
+    priceRange: { min: 4500, max: 22000 },
+    bio: 'Metal fabrication, gates, burglar proofs, and railings.',
+    rating: 4.7,
+    reviewCount: 35,
+    completedJobs: 55,
+    isVerified: true
+  },
+  {
+    name: 'Haruna Bello',
+    email: 'haruna@skillconnect.com',
+    skills: ['carpenter'],
+    experience: 9,
+    priceRange: { min: 5000, max: 25000 },
+    bio: 'Roofing, ceilings, and interior woodwork specialist.',
+    rating: 4.8,
+    reviewCount: 42,
+    completedJobs: 70,
+    isVerified: true
+  },
+  {
+    name: 'Aminu Zakari',
+    email: 'aminu@skillconnect.com',
+    skills: ['painter'],
+    experience: 7,
+    priceRange: { min: 2000, max: 8000 },
+    bio: 'Wall textures, POP designs, and waterproof coatings.',
+    rating: 4.5,
+    reviewCount: 30,
+    completedJobs: 52,
+    isVerified: true
+  },
+  {
+    name: 'Bashir Umar',
+    email: 'bashir@skillconnect.com',
+    skills: ['cleaner'],
+    experience: 4,
+    priceRange: { min: 1500, max: 6000 },
+    bio: 'Home and office deep cleaning. Post-construction cleanup.',
+    rating: 4.1,
+    reviewCount: 15,
+    completedJobs: 25,
+    isVerified: true
+  },
+  {
+    name: 'Kabiru Adamu',
+    email: 'kabiru@skillconnect.com',
+    skills: ['mason'],
+    experience: 8,
+    priceRange: { min: 3500, max: 18000 },
+    bio: 'Foundation, columns, and finishing work. 8 years experience.',
+    rating: 4.6,
+    reviewCount: 33,
+    completedJobs: 58,
+    isVerified: false
+  },
+  {
+    name: 'Tijjani Hassan',
+    email: 'tijjani@skillconnect.com',
+    skills: ['mechanic'],
+    experience: 6,
+    priceRange: { min: 4000, max: 20000 },
+    bio: 'Motorcycle and tricycle (Keke) repairs. Spare parts available.',
     rating: 4.3,
-    reviewCount: 19,
-    completedJobs: 33
+    reviewCount: 20,
+    completedJobs: 38,
+    isVerified: false
+  },
+  {
+    name: 'Salisu Mohammed',
+    email: 'salisu@skillconnect.com',
+    skills: ['electrician'],
+    experience: 5,
+    priceRange: { min: 2500, max: 12000 },
+    bio: 'CCTV installation, smart home wiring, and inverter setup.',
+    rating: 4.4,
+    reviewCount: 24,
+    completedJobs: 42,
+    isVerified: false
+  },
+  {
+    name: 'Zubairu Kaita',
+    email: 'zubairu@skillconnect.com',
+    skills: ['plumber'],
+    experience: 7,
+    priceRange: { min: 3000, max: 15000 },
+    bio: 'Borehole drilling and pump installation specialist.',
+    rating: 4.5,
+    reviewCount: 28,
+    completedJobs: 48,
+    isVerified: false
+  },
+  {
+    name: 'Nura Maigari',
+    email: 'nura@skillconnect.com',
+    skills: ['carpenter'],
+    experience: 9,
+    priceRange: { min: 5000, max: 25000 },
+    bio: 'School and office furniture. Bulk orders welcome.',
+    rating: 4.7,
+    reviewCount: 36,
+    completedJobs: 60,
+    isVerified: false
+  },
+  {
+    name: 'Farouk Idris',
+    email: 'farouk@skillconnect.com',
+    skills: ['welder'],
+    experience: 8,
+    priceRange: { min: 4500, max: 22000 },
+    bio: 'Industrial and domestic welding. Aluminium and iron works.',
+    rating: 4.6,
+    reviewCount: 32,
+    completedJobs: 55,
+    isVerified: false
+  },
+  {
+    name: 'Rabiu Danmusa',
+    email: 'rabiu@skillconnect.com',
+    skills: ['painter'],
+    experience: 6,
+    priceRange: { min: 2000, max: 8000 },
+    bio: 'Signage painting, wall murals, and shop fronts.',
+    rating: 4.2,
+    reviewCount: 18,
+    completedJobs: 32,
+    isVerified: false
+  },
+  {
+    name: 'Sani Dutsinma',
+    email: 'sani@skillconnect.com',
+    skills: ['mason'],
+    experience: 10,
+    priceRange: { min: 3500, max: 18000 },
+    bio: 'Renovation and remodeling specialist. Free site inspection.',
+    rating: 4.8,
+    reviewCount: 40,
+    completedJobs: 68,
+    isVerified: false
   }
 ];
 
@@ -157,14 +270,12 @@ const clients = [
   {
     name: 'Demo Client',
     email: 'client@demo.com',
-    phone: '+2348012345678',
-    location: 'Lagos'
+    phone: '+2348012345678'
   },
   {
     name: 'Aisha Musa',
     email: 'aisha@demo.com',
-    phone: '+2348098765432',
-    location: 'Abuja'
+    phone: '+2348098765432'
   }
 ];
 
@@ -174,26 +285,22 @@ async function seedDatabase() {
     await mongoose.connect(MONGODB_URI);
     console.log('Connected to MongoDB');
 
-    // Clear existing data
-    console.log('Clearing existing data...');
-    await User.deleteMany({});
-    await Booking.deleteMany({});
-    await KYC.deleteMany({});
+    // Drop database
+    console.log('Dropping database...');
+    await mongoose.connection.dropDatabase();
+    console.log('Database cleared ✅');
 
     // Create superadmin
     console.log('Creating admin...');
-    const adminExists = await User.findOne({ email: 'admin@skillconnect.com' });
-    if (!adminExists) {
-      await User.create({
-        name: 'Super Admin',
-        email: 'admin@skillconnect.com',
-        password: 'admin2026',
-        phone: '08000000000',
-        role: 'admin',
-        location: { city: 'Katsina', state: 'Katsina State', type: 'Point', coordinates: [7.6017, 12.9908] }
-      });
-      console.log('Admin created ✅');
-    }
+    await User.create({
+      name: 'Super Admin',
+      email: 'admin@skillconnect.com',
+      password: 'admin2026',
+      phone: '08000000000',
+      role: 'admin',
+      location: { city: 'Dutsin-Ma', state: 'Katsina State', type: 'Point', coordinates: [7.6017, 12.9908] }
+    });
+    console.log('Admin created ✅');
 
     // Passwords will be hashed by the User model pre-save hook
     // Do NOT hash manually here - that causes double-hashing
@@ -202,9 +309,8 @@ async function seedDatabase() {
 
     // Create workers
     console.log('Creating workers...');
-    const workerPromises = workers.map(worker => {
-      const cityData = cityCoordinates[worker.location];
-      const coordinates = addRandomOffset(cityData.coordinates);
+    const workerPromises = workers.map((worker, index) => {
+      const coordinates = addRandomOffset();
       return User.create({
         name: worker.name,
         email: worker.email,
@@ -217,12 +323,16 @@ async function seedDatabase() {
         rating: worker.rating,
         reviewCount: worker.reviewCount,
         completedJobs: worker.completedJobs,
+        isVerified: worker.isVerified,
         availability: true,
+        isVisible: true,
         lastSeen: new Date(),
+        lastLocationUpdate: new Date(),
+        avatarColor: avatarColors[index % avatarColors.length],
         location: {
-          address: worker.location,
-          city: worker.location,
-          state: worker.location,
+          address: 'Dutsin-Ma',
+          city: 'Dutsin-Ma',
+          state: 'Katsina State',
           type: 'Point',
           coordinates: coordinates
         },
@@ -230,13 +340,12 @@ async function seedDatabase() {
       });
     });
     await Promise.all(workerPromises);
-    console.log(`Created ${workers.length} workers`);
+    console.log(`Created ${workers.length} workers ✅`);
 
     // Create clients
     console.log('Creating clients...');
     const clientPromises = clients.map(client => {
-      const cityData = cityCoordinates[client.location] || { coordinates: [7.3986, 9.0765] }; // Default to Abuja
-      const coordinates = addRandomOffset(cityData.coordinates);
+      const coordinates = addRandomOffset();
       return User.create({
         name: client.name,
         email: client.email,
@@ -244,9 +353,9 @@ async function seedDatabase() {
         role: 'client',
         phone: client.phone,
         location: {
-          address: client.location,
-          city: client.location,
-          state: client.location,
+          address: 'Dutsin-Ma',
+          city: 'Dutsin-Ma',
+          state: 'Katsina State',
           type: 'Point',
           coordinates: coordinates
         },
@@ -254,15 +363,15 @@ async function seedDatabase() {
       });
     });
     await Promise.all(clientPromises);
-    console.log(`Created ${clients.length} clients`);
+    console.log(`Created ${clients.length} clients ✅`);
 
     // Create sample bookings
     console.log('Creating sample bookings...');
     const createdWorkers = await User.find({ role: 'worker' });
     const createdClients = await User.find({ role: 'client' });
-    
+
     console.log(`Found ${createdWorkers.length} workers and ${createdClients.length} clients`);
-    
+
     if (createdWorkers.length > 0 && createdClients.length > 0) {
       const sampleBookings = [
         {
@@ -273,7 +382,7 @@ async function seedDatabase() {
           date: new Date(),
           status: 'completed',
           price: 5000,
-          address: 'Lagos'
+          address: 'Dutsin-Ma'
         },
         {
           client: createdClients[1]._id,
@@ -283,19 +392,20 @@ async function seedDatabase() {
           date: new Date(),
           status: 'pending',
           price: 8000,
-          address: 'Abuja'
+          address: 'Dutsin-Ma'
         }
       ];
       await Booking.create(sampleBookings);
-      console.log('Created sample bookings');
+      console.log('Created sample bookings ✅');
     } else {
       console.log('Skipping bookings - not enough workers or clients');
     }
 
-    console.log('\nSeed completed successfully!');
+    console.log('\nSeed completed successfully! ✅');
     console.log('\nDemo accounts:');
-    console.log('Workers: email = [name]@demo.com, password = password123');
+    console.log('Workers: email = [name]@skillconnect.com, password = password123');
     console.log('Clients: client@demo.com / aisha@demo.com, password = demo1234');
+    console.log('Admin: admin@skillconnect.com, password = admin2026');
 
     process.exit(0);
   } catch (error) {

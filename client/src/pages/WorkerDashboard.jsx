@@ -4,10 +4,10 @@ import api from '../api';
 import { useAuth } from '../context/AuthContext';
 import useLocationBroadcast from '../hooks/useLocationBroadcast';
 import ChatBox from '../components/ChatBox';
-import { 
-  Calendar, MapPin, DollarSign, Clock, CheckCircle, 
-  Loader2, User, Briefcase, XCircle, PlayCircle, 
-  ToggleLeft, ToggleRight, Wallet, Radio, MessageCircle
+import {
+  Calendar, MapPin, DollarSign, Clock, CheckCircle,
+  Loader2, User, Briefcase, XCircle, PlayCircle,
+  ToggleLeft, ToggleRight, Wallet, Radio, MessageCircle, Map
 } from 'lucide-react';
 
 const statusColors = {
@@ -75,12 +75,23 @@ export default function WorkerDashboard() {
 
   const toggleAvailability = async () => {
     try {
-      const res = await api.put('/workers/availability', { 
-        availability: !user.availability 
+      const res = await api.put('/workers/availability', {
+        availability: !user.availability
       });
       setUser({ ...user, availability: res.data.availability });
     } catch (error) {
       console.error('Error toggling availability:', error);
+    }
+  };
+
+  const toggleVisibility = async () => {
+    try {
+      const res = await api.patch('/workers/visibility', {
+        isVisible: !user.isVisible
+      });
+      setUser({ ...user, isVisible: res.data.isVisible });
+    } catch (error) {
+      console.error('Error toggling visibility:', error);
     }
   };
 
@@ -120,37 +131,57 @@ export default function WorkerDashboard() {
                 Get Verified
               </Link>
             )}
-            {/* Location Status */}
+          </div>
+        </div>
+
+        {/* Visibility Control Card */}
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-4 md:p-6 mb-6 md:mb-8">
+          <div className="flex items-center gap-2 mb-4">
+            <Map className="w-5 h-5 text-gray-600" />
+            <h2 className="text-lg font-semibold text-gray-900">Your Visibility Status</h2>
+          </div>
+          <div className="flex flex-col sm:flex-row gap-4 mb-4">
+            <button
+              onClick={() => toggleVisibility()}
+              className={`flex-1 px-4 py-3 rounded-lg font-medium transition-colors ${
+                user?.isVisible
+                  ? 'bg-green-600 text-white'
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              }`}
+            >
+              📍 Visibility Mode
+            </button>
+            <button
+              onClick={() => toggleVisibility()}
+              className={`flex-1 px-4 py-3 rounded-lg font-medium transition-colors ${
+                !user?.isVisible
+                  ? 'bg-gray-600 text-white'
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              }`}
+            >
+              👻 Ghost Mode
+            </button>
+          </div>
+          <div className="flex items-center justify-between">
+            <p className="text-sm text-gray-600">
+              {user?.isVisible ? (
+                <span className="text-green-600">● You are VISIBLE on the map. Clients near you can see and book you.</span>
+              ) : (
+                <span className="text-gray-500">● You are hidden from the map. Clients cannot find you.</span>
+              )}
+            </p>
             <div className="flex items-center gap-2 text-sm">
               {isBroadcasting ? (
                 <>
-                  <Radio className="w-4 h-4 text-green-500" />
-                  <span className="text-green-600">Broadcasting location</span>
+                  <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+                  <span className="text-green-600">📡 Broadcasting location</span>
                 </>
               ) : (
                 <>
-                  <Radio className="w-4 h-4 text-gray-400" />
+                  <div className="w-2 h-2 bg-gray-400 rounded-full" />
                   <span className="text-gray-500">Location off</span>
                 </>
               )}
-            </div>
-            {/* Availability Toggle */}
-            <div className="flex items-center gap-3">
-              <span className={`text-sm font-medium ${user?.availability ? 'text-green-600' : 'text-red-600'}`}>
-                {user?.availability ? 'Available' : 'Unavailable'}
-              </span>
-              <button
-                onClick={toggleAvailability}
-                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                  user?.availability ? 'bg-green-500' : 'bg-gray-300'
-                }`}
-              >
-                <span
-                  className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                    user?.availability ? 'translate-x-6' : 'translate-x-1'
-                  }`}
-                />
-              </button>
             </div>
           </div>
         </div>

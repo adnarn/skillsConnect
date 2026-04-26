@@ -85,6 +85,14 @@ const userSchema = new mongoose.Schema({
     type: Boolean,
     default: true
   },
+  isVisible: {
+    type: Boolean,
+    default: false
+  },
+  lastLocationUpdate: {
+    type: Date,
+    default: null
+  },
   // Legacy coordinates field (for backwards compatibility)
   legacyCoordinates: {
     lat: { type: Number },

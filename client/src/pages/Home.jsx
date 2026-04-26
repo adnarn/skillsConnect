@@ -5,8 +5,8 @@ export default function Home() {
   const features = [
     {
       icon: <Users className="w-6 h-6" />,
-      title: '500+ Skilled Workers',
-      description: 'Access a large pool of verified professionals ready to help'
+      title: '20+ Skilled Workers',
+      description: 'Access verified professionals in Dutsin-Ma, Katsina'
     },
     {
       icon: <CheckCircle className="w-6 h-6" />,
@@ -45,13 +45,18 @@ export default function Home() {
           {/* Live Counters */}
           <div className="flex flex-col md:flex-row justify-center gap-4 md:gap-8 mb-10">
             <div className="bg-white/10 backdrop-blur-sm rounded-xl px-6 py-4 md:px-8">
-              <div className="text-2xl md:text-3xl lg:text-4xl font-bold">500+</div>
+              <div className="text-2xl md:text-3xl lg:text-4xl font-bold">20+</div>
               <div className="text-primary-200 text-sm">Skilled Workers</div>
             </div>
             <div className="border-t md:border-t-0 md:border-l border-white/20"></div>
             <div className="bg-white/10 backdrop-blur-sm rounded-xl px-6 py-4 md:px-8">
-              <div className="text-2xl md:text-3xl lg:text-4xl font-bold">2,000+</div>
-              <div className="text-primary-200 text-sm">Jobs Completed</div>
+              <div className="text-2xl md:text-3xl lg:text-4xl font-bold">Dutsin-Ma</div>
+              <div className="text-primary-200 text-sm">Katsina State</div>
+            </div>
+            <div className="border-t md:border-t-0 md:border-l border-white/20"></div>
+            <div className="bg-white/10 backdrop-blur-sm rounded-xl px-6 py-4 md:px-8 flex items-center gap-2">
+              <div className="w-3 h-3 bg-green-400 rounded-full animate-pulse"></div>
+              <div className="text-primary-200 text-sm">Workers online now</div>
             </div>
           </div>
 

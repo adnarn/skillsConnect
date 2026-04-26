@@ -5,15 +5,15 @@ import api from '../api';
 /**
  * Hook for workers to broadcast their live location
  * Should be used in Worker Dashboard
- * Updates location every 60 seconds when worker is available
+ * Updates location every 60 seconds when worker is visible
  */
 export default function useLocationBroadcast() {
   const { user } = useAuth();
   const intervalRef = useRef(null);
 
   useEffect(() => {
-    // Only run for workers who are available
-    if (!user || user.role !== 'worker' || !user.availability) {
+    // Only run for workers who are visible
+    if (!user || user.role !== 'worker' || !user.isVisible) {
       if (intervalRef.current) {
         clearInterval(intervalRef.current);
         intervalRef.current = null;
@@ -31,7 +31,7 @@ export default function useLocationBroadcast() {
         async (position) => {
           try {
             const { latitude, longitude } = position.coords;
-            await api.patch('/map/location', {
+            await api.patch('/workers/location', {
               lat: latitude,
               lng: longitude
             });
@@ -63,6 +63,6 @@ export default function useLocationBroadcast() {
 
   // Return broadcast status for UI indicator
   return {
-    isBroadcasting: !!intervalRef.current && user?.role === 'worker' && user?.availability
+    isBroadcasting: !!intervalRef.current && user?.role === 'worker' && user?.isVisible
   };
 }

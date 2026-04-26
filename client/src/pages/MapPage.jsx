@@ -19,9 +19,9 @@ L.Icon.Default.mergeOptions({
   shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
 });
 
-// Nigeria center coordinates
-const NIGERIA_CENTER = [9.0820, 8.6753];
-const DEFAULT_ZOOM = 6;
+// Dutsin-Ma center coordinates
+const DUTSIN_MA_CENTER = [12.9908, 7.6017];
+const DEFAULT_ZOOM = 13;
 
 // Skill emojis mapping
 const skillEmojis = {
@@ -36,11 +36,11 @@ const skillEmojis = {
 };
 
 // Custom marker icons
-const createWorkerIcon = (isAvailable, isSelected, skill) => {
+const createWorkerIcon = (isVerified, isSelected, skill) => {
   const emoji = skillEmojis[skill?.toLowerCase()] || '🔧';
-  const color = isAvailable ? '#22c55e' : '#9ca3af';
-  const size = isSelected ? 40 : 32;
-  
+  const color = isVerified ? '#22c55e' : '#3b82f6';
+  const size = isSelected ? 40 : 36;
+
   return L.divIcon({
     className: 'custom-marker',
     html: `
@@ -52,11 +52,11 @@ const createWorkerIcon = (isAvailable, isSelected, skill) => {
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: ${isSelected ? '20px' : '16px'};
+        font-size: ${isSelected ? '20px' : '18px'};
         border: 3px solid white;
         box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-        ${isSelected ? 'ring: 4px solid #3b82f6;' : ''}
-      ">${emoji}</div>
+        position: relative;
+      ">${emoji}${isVerified ? '<span style="position: absolute; top: -2px; right: -2px; font-size: 10px;">✓</span>' : ''}</div>
     `,
     iconSize: [size, size],
     iconAnchor: [size/2, size/2],
@@ -116,6 +116,7 @@ export default function MapPage() {
   const [maxDistance, setMaxDistance] = useState(50);
   const [lastUpdated, setLastUpdated] = useState(null);
   const [locationError, setLocationError] = useState(null);
+  const [locationLoading, setLocationLoading] = useState(false);
   const [mobilePanelOpen, setMobilePanelOpen] = useState(false);
   const [showBookingModal, setShowBookingModal] = useState(false);
   const [bookingWorker, setBookingWorker] = useState(null);
@@ -131,34 +132,28 @@ export default function MapPage() {
   // Skills list
   const skills = ['', 'plumber', 'electrician', 'carpenter', 'painter', 'mechanic', 'mason', 'cleaner', 'welder'];
 
-  // Fetch nearby workers
-  const fetchNearbyWorkers = useCallback(async () => {
-    if (!clientLocation) return;
-    
+  // Fetch visible workers
+  const fetchVisibleWorkers = useCallback(async () => {
     setLoading(true);
     try {
-      const params = new URLSearchParams({
-        lat: clientLocation[1],
-        lng: clientLocation[0],
-        maxDistance: maxDistance * 1000 // Convert km to meters
-      });
-      if (skillFilter) params.append('skill', skillFilter);
-      
-      const res = await api.get(`/map/nearby?${params.toString()}`);
+      const res = await api.get('/workers/visible');
       setWorkers(res.data);
       setLastUpdated(new Date());
     } catch (error) {
-      console.error('Error fetching nearby workers:', error);
+      console.error('Error fetching visible workers:', error);
     } finally {
       setLoading(false);
     }
-  }, [clientLocation, skillFilter, maxDistance]);
+  }, []);
 
   // Get client location
   const getClientLocation = () => {
     setLocationError(null);
+    setLocationLoading(true);
+
     if (!navigator.geolocation) {
       setLocationError('Geolocation is not supported by your browser');
+      setLocationLoading(false);
       return;
     }
 
@@ -167,27 +162,35 @@ export default function MapPage() {
         const { longitude, latitude } = position.coords;
         setClientLocation([longitude, latitude]);
         setFlyToLocation([latitude, longitude]);
+        setLocationLoading(false);
       },
       (error) => {
         console.error('Geolocation error:', error);
-        setLocationError('Unable to retrieve your location. Please check permissions.');
+        let errorMessage = 'Unable to retrieve your location.';
+        if (error.code === 1) {
+          errorMessage = 'Location permission denied. Please enable location access in your browser settings.';
+        } else if (error.code === 2) {
+          errorMessage = 'Unable to determine your location. Please try again.';
+        } else if (error.code === 3) {
+          errorMessage = 'Location request timed out. Please try again.';
+        }
+        setLocationError(errorMessage);
+        setLocationLoading(false);
       },
-      { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 }
+      { enableHighAccuracy: true, timeout: 15000, maximumAge: 60000 }
     );
   };
 
   // Auto-refresh workers every 30 seconds
   useEffect(() => {
-    if (!clientLocation) return;
-    
-    fetchNearbyWorkers();
-    const interval = setInterval(fetchNearbyWorkers, 30000);
+    fetchVisibleWorkers();
+    const interval = setInterval(fetchVisibleWorkers, 30000);
     return () => clearInterval(interval);
-  }, [clientLocation, fetchNearbyWorkers]);
+  }, [fetchVisibleWorkers]);
 
-  // Initial location request
+  // Initial load - fetch workers immediately without requiring client location
   useEffect(() => {
-    getClientLocation();
+    fetchVisibleWorkers();
   }, []);
 
   // Handle worker selection
@@ -347,10 +350,20 @@ export default function MapPage() {
             {/* Use My Location Button */}
             <button
               onClick={getClientLocation}
-              className="w-full flex items-center justify-center px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
+              disabled={locationLoading}
+              className="w-full flex items-center justify-center px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              <Crosshair className="w-4 h-4 mr-2" />
-              Use My Location
+              {locationLoading ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Getting location...
+                </>
+              ) : (
+                <>
+                  <Crosshair className="w-4 h-4 mr-2" />
+                  Use My Location
+                </>
+              )}
             </button>
           </div>
 
@@ -363,18 +376,11 @@ export default function MapPage() {
           )}
 
           {/* Workers List */}
-          {!loading && workers.length === 0 && clientLocation && (
+          {!loading && workers.length === 0 && (
             <div className="text-center py-8 text-gray-500">
               <Search className="w-12 h-12 mx-auto mb-3 text-gray-300" />
-              <p>No workers found within {maxDistance}km.</p>
-              <p className="text-sm">Try increasing the distance.</p>
-            </div>
-          )}
-
-          {!clientLocation && !loading && (
-            <div className="text-center py-8 text-gray-500">
-              <MapPin className="w-12 h-12 mx-auto mb-3 text-gray-300" />
-              <p>Enable location to find workers near you</p>
+              <p>No visible workers found</p>
+              <p className="text-sm">Workers may be in ghost mode</p>
             </div>
           )}
 
@@ -404,8 +410,8 @@ export default function MapPage() {
                       <span className="mr-2">{skillEmojis[worker.skills?.[0]?.toLowerCase()] || '🔧'}</span>
                       <span className="capitalize truncate">{worker.skills?.[0]}</span>
                       <span className="mx-2 flex-shrink-0">•</span>
-                      <Navigation className="w-3 h-3 mr-1 flex-shrink-0" />
-                      <span className="truncate">{formatDistance(worker.distance)}</span>
+                      <MapPin className="w-3 h-3 mr-1 flex-shrink-0" />
+                      <span className="truncate">{worker.location?.city || 'Dutsin-Ma'}</span>
                     </div>
                     <div className="flex items-center mt-1">
                       <Star className="w-4 h-4 text-yellow-400 fill-yellow-400 mr-1 flex-shrink-0" />
@@ -432,7 +438,7 @@ export default function MapPage() {
 
       {/* Map */}
       <MapContainer
-        center={NIGERIA_CENTER}
+        center={DUTSIN_MA_CENTER}
         zoom={DEFAULT_ZOOM}
         ref={mapRef}
         style={{ height: '100%', width: '100%' }}
@@ -441,9 +447,9 @@ export default function MapPage() {
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
-        
-        <MapController 
-          center={clientLocation ? [clientLocation[1], clientLocation[0]] : NIGERIA_CENTER}
+
+        <MapController
+          center={clientLocation ? [clientLocation[1], clientLocation[0]] : DUTSIN_MA_CENTER}
           zoom={clientLocation ? 13 : DEFAULT_ZOOM}
           flyToLocation={flyToLocation}
         />
@@ -474,7 +480,7 @@ export default function MapPage() {
             <Marker
               key={worker._id}
               position={[worker.location.coordinates[1], worker.location.coordinates[0]]}
-              icon={createWorkerIcon(worker.availability, selectedWorker?._id === worker._id, worker.skills?.[0])}
+              icon={createWorkerIcon(worker.isVerified, selectedWorker?._id === worker._id, worker.skills?.[0])}
               eventHandlers={{
                 click: () => setSelectedWorker(worker)
               }}
@@ -489,7 +495,7 @@ export default function MapPage() {
                       <h3 className="font-semibold text-gray-900">{worker.name}</h3>
                       <div className="flex items-center text-sm text-gray-500">
                         <Star className="w-3 h-3 text-yellow-400 fill-yellow-400 mr-1" />
-                        {worker.rating?.toFixed(1)}
+                        {worker.rating?.toFixed(1)} ({worker.reviewCount})
                       </div>
                     </div>
                   </div>
@@ -497,7 +503,7 @@ export default function MapPage() {
                     {skillEmojis[worker.skills?.[0]?.toLowerCase()] || '🔧'} {worker.skills?.[0]}
                   </p>
                   <p className="text-xs text-gray-500 mb-2">
-                    📍 {formatDistance(worker.distance)} away
+                    📍 {worker.location?.city || 'Dutsin-Ma'}
                   </p>
                   <p className="text-sm font-medium text-gray-900 mb-3">
                     ₦{worker.priceRange?.min?.toLocaleString()} - ₦{worker.priceRange?.max?.toLocaleString()}
@@ -543,6 +549,12 @@ export default function MapPage() {
       >
         <LocateFixed className="w-6 h-6 text-gray-700" />
       </button>
+
+      {/* Live Indicator */}
+      <div className="absolute top-4 right-4 z-20 bg-white rounded-lg shadow-lg px-3 py-2 flex items-center gap-2">
+        <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+        <span className="text-sm font-medium text-gray-700">🟢 Live</span>
+      </div>
 
       {/* Booking Modal */}
       {showBookingModal && bookingWorker && (
