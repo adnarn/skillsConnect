@@ -470,11 +470,11 @@ export default function AdminDashboard() {
                             {kyc.idPhotoUrl && (
                               <div className="flex-shrink-0">
                                 <p className="text-xs text-gray-500 mb-1">ID Photo</p>
-                                <img 
-                                  src={`http://localhost:5000${kyc.idPhotoUrl}`} 
-                                  alt="ID" 
+                                <img
+                                  src={kyc.idPhotoUrl}
+                                  alt="ID"
                                   className="w-28 h-28 md:w-32 md:h-32 object-cover rounded-lg cursor-pointer hover:opacity-80"
-                                  onLoad={() => console.log('Image loaded:', `http://localhost:5000${kyc.idPhotoUrl}`)}
+                                  onLoad={() => console.log('Image loaded:', kyc.idPhotoUrl)}
                                   onError={(e) => {
                                     console.error('Image load error:', e.target.src);
                                     console.error('KYC data:', kyc);
@@ -486,11 +486,11 @@ export default function AdminDashboard() {
                             {kyc.selfieUrl && (
                               <div className="flex-shrink-0">
                                 <p className="text-xs text-gray-500 mb-1">Selfie</p>
-                                <img 
-                                  src={`http://localhost:5000${kyc.selfieUrl}`} 
-                                  alt="Selfie" 
+                                <img
+                                  src={kyc.selfieUrl}
+                                  alt="Selfie"
                                   className="w-28 h-28 md:w-32 md:h-32 object-cover rounded-lg cursor-pointer hover:opacity-80"
-                                  onLoad={() => console.log('Image loaded:', `http://localhost:5000${kyc.selfieUrl}`)}
+                                  onLoad={() => console.log('Image loaded:', kyc.selfieUrl)}
                                   onError={(e) => {
                                     console.error('Image load error:', e.target.src);
                                     console.error('KYC data:', kyc);
