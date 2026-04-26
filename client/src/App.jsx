@@ -12,6 +12,7 @@ import KYCPage from './pages/KYCPage';
 import AdminDashboard from './pages/AdminDashboard';
 import ClientDashboard from './pages/ClientDashboard';
 import WorkerDashboard from './pages/WorkerDashboard';
+import Pricing from './pages/Pricing';
 import NotFound from './pages/NotFound';
 
 // Protected route component
@@ -102,6 +103,7 @@ function AppContent() {
             } 
           />
           <Route path="/explore" element={<Explore />} />
+          <Route path="/pricing" element={<Pricing />} />
           <Route path="/map" element={<MapPage />} />
           <Route path="/worker/:id" element={<WorkerProfile />} />
           <Route 

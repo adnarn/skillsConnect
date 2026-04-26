@@ -97,6 +97,7 @@ export default function Navbar() {
           <div className="hidden md:flex items-center space-x-4">
             <Link to="/" className={navLinkClass('/')}>Home</Link>
             <Link to="/explore" className={navLinkClass('/explore')}>Explore</Link>
+            <Link to="/pricing" className={navLinkClass('/pricing')}>Pricing</Link>
             <Link to="/map" className={navLinkClass('/map')}>Map</Link>
             
             {user ? (
@@ -295,6 +296,7 @@ export default function Navbar() {
             <div className="flex flex-col space-y-2">
               <Link to="/" className={navLinkClass('/')} onClick={() => setMobileMenuOpen(false)}>Home</Link>
               <Link to="/explore" className={navLinkClass('/explore')} onClick={() => setMobileMenuOpen(false)}>Explore</Link>
+              <Link to="/pricing" className={navLinkClass('/pricing')} onClick={() => setMobileMenuOpen(false)}>Pricing</Link>
               <Link to="/map" className={navLinkClass('/map')} onClick={() => setMobileMenuOpen(false)}>Map</Link>
               
               {user ? (
