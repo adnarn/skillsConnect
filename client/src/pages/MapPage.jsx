@@ -227,7 +227,11 @@ export default function MapPage() {
       await api.post('/bookings', {
         workerId: bookingWorker._id,
         ...bookingData,
-        price: bookingWorker.priceRange?.min || 0
+        price: bookingWorker.priceRange?.min || 0,
+        clientLocation: {
+          address: bookingData.address,
+          coordinates: clientLocation ? { lat: clientLocation[1], lng: clientLocation[0] } : { lat: 0, lng: 0 }
+        }
       });
       setShowBookingModal(false);
       setBookingWorker(null);

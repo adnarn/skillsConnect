@@ -18,6 +18,7 @@ export default function WorkerProfile() {
     address: '',
     price: ''
   });
+  const [clientLocation, setClientLocation] = useState(null);
   const [bookingLoading, setBookingLoading] = useState(false);
   const [bookingError, setBookingError] = useState('');
   const [toast, setToast] = useState({ show: false, message: '' });
@@ -25,6 +26,20 @@ export default function WorkerProfile() {
   useEffect(() => {
     fetchWorker();
   }, [id]);
+
+  useEffect(() => {
+    if (showBookingModal && navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          setClientLocation({
+            lat: pos.coords.latitude,
+            lng: pos.coords.longitude
+          });
+        },
+        () => {} // silent fail — location is optional
+      );
+    }
+  }, [showBookingModal]);
 
   const fetchWorker = async () => {
     try {
@@ -57,7 +72,11 @@ export default function WorkerProfile() {
       await api.post('/bookings', {
         workerId: id,
         ...bookingData,
-        price: parseInt(bookingData.price)
+        price: parseInt(bookingData.price),
+        clientLocation: {
+          address: bookingData.address,
+          coordinates: clientLocation || { lat: 0, lng: 0 }
+        }
       });
       setShowBookingModal(false);
       navigate('/client-dashboard');
@@ -334,6 +353,9 @@ export default function WorkerProfile() {
                   placeholder="Enter your address"
                   required
                 />
+                <p className="text-xs text-gray-500 mt-1">
+                  📍 Your approximate location will be shared with the worker after they accept your booking.
+                </p>
               </div>
 
               <div>

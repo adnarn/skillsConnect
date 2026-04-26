@@ -3,7 +3,7 @@ import User from '../models/User.js';
 
 export const createBooking = async (req, res) => {
   try {
-    const { workerId, service, description, date, price, address } = req.body;
+    const { workerId, service, description, date, price, address, clientLocation } = req.body;
 
     const worker = await User.findOne({ _id: workerId, role: 'worker' });
     if (!worker) {
@@ -17,7 +17,8 @@ export const createBooking = async (req, res) => {
       description,
       date: new Date(date),
       price,
-      address
+      address,
+      clientLocation
     });
 
     await booking.save();

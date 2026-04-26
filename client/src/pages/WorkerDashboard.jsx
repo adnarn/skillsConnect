@@ -4,10 +4,13 @@ import api from '../api';
 import { useAuth } from '../context/AuthContext';
 import useLocationBroadcast from '../hooks/useLocationBroadcast';
 import ChatBox from '../components/ChatBox';
+import { MapContainer, TileLayer, Marker, Popup, Polyline } from 'react-leaflet';
+import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
 import {
   Calendar, MapPin, DollarSign, Clock, CheckCircle,
   Loader2, User, Briefcase, XCircle, PlayCircle,
-  ToggleLeft, ToggleRight, Wallet, Radio, MessageCircle, Map
+  ToggleLeft, ToggleRight, Wallet, Radio, MessageCircle, Map, Navigation
 } from 'lucide-react';
 
 const statusColors = {
@@ -26,12 +29,49 @@ const statusLabels = {
   'cancelled': 'Cancelled'
 };
 
+// Fix Leaflet default marker icons
+delete L.Icon.Default.prototype._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
+  iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
+  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
+});
+
+// Custom marker icons
+const clientIcon = L.divIcon({
+  className: 'custom-marker',
+  html: '<div style="width: 24px; height: 24px; background: #ef4444; border-radius: 50%; border: 3px solid white; box-shadow: 0 2px 8px rgba(0,0,0,0.3); display: flex; align-items: center; justify-content: center; font-size: 12px;">📍</div>',
+  iconSize: [24, 24],
+  iconAnchor: [12, 12]
+});
+
+const workerIcon = L.divIcon({
+  className: 'custom-marker',
+  html: '<div style="width: 24px; height: 24px; background: #22c55e; border-radius: 50%; border: 3px solid white; box-shadow: 0 2px 8px rgba(0,0,0,0.3); display: flex; align-items: center; justify-content: center; font-size: 12px;">📍</div>',
+  iconSize: [24, 24],
+  iconAnchor: [12, 12]
+});
+
+// Haversine distance formula
+function getDistanceKm(lat1, lng1, lat2, lng2) {
+  const R = 6371;
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLng = (lng2 - lng1) * Math.PI / 180;
+  const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+    Math.cos(lat1 * Math.PI/180) * Math.cos(lat2 * Math.PI/180) *
+    Math.sin(dLng/2) * Math.sin(dLng/2);
+  return (R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a))).toFixed(1);
+}
+
 export default function WorkerDashboard() {
   const { user, setUser } = useAuth();
   const { isBroadcasting } = useLocationBroadcast();
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [openChatId, setOpenChatId] = useState(null);
+  const [expandedMapId, setExpandedMapId] = useState(null);
+  const [workerLocation, setWorkerLocation] = useState(null);
+  const [distances, setDistances] = useState({});
   const [stats, setStats] = useState({
     total: 0,
     pending: 0,
@@ -42,6 +82,32 @@ export default function WorkerDashboard() {
   useEffect(() => {
     fetchBookings();
   }, []);
+
+  // Get worker location and calculate distances
+  useEffect(() => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          const loc = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+          setWorkerLocation(loc);
+          
+          // Calculate distances for all bookings with client location
+          const newDistances = {};
+          bookings.forEach(booking => {
+            if (booking.clientLocation?.coordinates?.lat && booking.clientLocation?.coordinates?.lng) {
+              newDistances[booking._id] = getDistanceKm(
+                loc.lat, loc.lng,
+                booking.clientLocation.coordinates.lat,
+                booking.clientLocation.coordinates.lng
+              );
+            }
+          });
+          setDistances(newDistances);
+        },
+        () => {} // silent fail
+      );
+    }
+  }, [bookings]);
 
   const fetchBookings = async () => {
     try {
@@ -97,6 +163,28 @@ export default function WorkerDashboard() {
 
   const toggleChat = (bookingId) => {
     setOpenChatId(openChatId === bookingId ? null : bookingId);
+  };
+
+  const toggleMap = async (bookingId) => {
+    if (expandedMapId === bookingId) {
+      setExpandedMapId(null);
+    } else {
+      setExpandedMapId(bookingId);
+      // Get fresh worker location when opening map
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          (pos) => {
+            setWorkerLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude });
+          },
+          () => {}
+        );
+      }
+    }
+  };
+
+  const openDirections = (clientLat, clientLng) => {
+    const url = `https://www.google.com/maps/dir/?api=1&destination=${clientLat},${clientLng}`;
+    window.open(url, '_blank');
   };
 
   // Calculate estimated earnings
@@ -256,97 +344,242 @@ export default function WorkerDashboard() {
             </div>
           ) : (
             <div className="divide-y divide-gray-100">
-              {bookings.map((booking) => (
-                <div key={booking._id} className="p-4 md:p-6 hover:bg-gray-50 transition-colors">
-                  <div className="flex flex-col gap-4">
-                    <div className="flex-1">
-                      <div className="flex flex-col sm:flex-row sm:items-center gap-2 mb-2">
-                        <h3 className="font-semibold text-gray-900">{booking.service}</h3>
-                        <span className={`px-3 py-1 rounded-full text-xs font-medium ${statusColors[booking.status]}`}>
-                          {statusLabels[booking.status]}
-                        </span>
-                        {(booking.status === 'accepted' || booking.status === 'in-progress' || booking.status === 'completed') && (
-                          <button
-                            onClick={() => toggleChat(booking._id)}
-                            className="flex items-center gap-1 px-3 py-1 bg-gray-100 hover:bg-gray-200 rounded-full text-xs font-medium text-gray-700 transition-colors"
-                          >
-                            <MessageCircle className="w-3 h-3" />
-                            Chat
-                          </button>
+              {bookings.map((booking) => {
+                const hasClientLocation = booking.clientLocation?.coordinates?.lat && booking.clientLocation?.coordinates?.lng;
+                const distance = distances[booking._id];
+                const isActiveJob = booking.status === 'accepted' || booking.status === 'in-progress';
+                
+                return (
+                  <div key={booking._id} className="p-4 md:p-6 hover:bg-gray-50 transition-colors">
+                    {/* Active Job Card */}
+                    {isActiveJob && hasClientLocation && (
+                      <div className="mb-4 p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl border border-blue-100">
+                        <div className="flex items-center gap-2 mb-3">
+                          <span className="text-lg">🔧</span>
+                          <h3 className="font-bold text-gray-900">ACTIVE JOB</h3>
+                        </div>
+                        <p className="text-sm text-gray-600 mb-3">{booking.client?.name} → Client Location</p>
+                        
+                        {expandedMapId === booking._id && workerLocation && (
+                          <div className="h-[300px] rounded-lg overflow-hidden mb-3">
+                            <MapContainer
+                              key={`map-${booking._id}`}
+                              center={[
+                                (workerLocation.lat + booking.clientLocation.coordinates.lat) / 2,
+                                (workerLocation.lng + booking.clientLocation.coordinates.lng) / 2
+                              ]}
+                              zoom={13}
+                              style={{ height: '100%', width: '100%' }}
+                            >
+                              <TileLayer
+                                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                              />
+                              <Marker
+                                position={[booking.clientLocation.coordinates.lat, booking.clientLocation.coordinates.lng]}
+                                icon={clientIcon}
+                              >
+                                <Popup>📍 Client Location<br />{booking.address}</Popup>
+                              </Marker>
+                              <Marker
+                                position={[workerLocation.lat, workerLocation.lng]}
+                                icon={workerIcon}
+                              >
+                                <Popup>📍 Your Location</Popup>
+                              </Marker>
+                              <Polyline
+                                positions={[
+                                  [workerLocation.lat, workerLocation.lng],
+                                  [booking.clientLocation.coordinates.lat, booking.clientLocation.coordinates.lng]
+                                ]}
+                                color="#3b82f6"
+                                dashArray="5, 10"
+                              />
+                            </MapContainer>
+                          </div>
                         )}
+                        
+                        <div className="flex items-center justify-between text-sm text-gray-600 mb-3">
+                          <span>Green pin = You</span>
+                          <span>Red pin = Client</span>
+                        </div>
+                        
+                        {distance && (
+                          <div className="flex items-center gap-2 text-sm font-medium text-gray-700 mb-3">
+                            <span>📏</span>
+                            <span>{distance} km away</span>
+                          </div>
+                        )}
+                        
+                        <div className="flex items-center gap-2 text-sm text-gray-600 mb-3">
+                          <MapPin className="w-4 h-4" />
+                          <span>{booking.address}</span>
+                        </div>
+                        
+                        <div className="flex gap-2">
+                          {booking.status === 'accepted' && (
+                            <button
+                              onClick={() => updateStatus(booking._id, 'in-progress')}
+                              className="flex-1 flex items-center justify-center px-4 py-2 bg-purple-600 text-white rounded-lg text-sm font-medium hover:bg-purple-700"
+                            >
+                              <PlayCircle className="w-4 h-4 mr-1" />
+                              Mark as In Progress
+                            </button>
+                          )}
+                          {hasClientLocation && (
+                            <button
+                              onClick={() => openDirections(booking.clientLocation.coordinates.lat, booking.clientLocation.coordinates.lng)}
+                              className="flex-1 flex items-center justify-center px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700"
+                            >
+                              <Navigation className="w-4 h-4 mr-1" />
+                              Get Directions
+                            </button>
+                          )}
+                        </div>
                       </div>
-                      <p className="text-gray-600 text-sm mb-3">{booking.description}</p>
-                      <div className="flex flex-wrap items-center gap-3 md:gap-4 text-xs md:text-sm text-gray-500">
-                        <span className="flex items-center">
-                          <User className="w-4 h-4 mr-1" />
-                          {booking.client?.name}
-                        </span>
-                        <span className="flex items-center">
-                          <Calendar className="w-4 h-4 mr-1" />
-                          {new Date(booking.date).toLocaleDateString()}
-                        </span>
-                        <span className="flex items-center">
-                          <MapPin className="w-4 h-4 mr-1" />
-                          <span className="truncate">{booking.address}</span>
-                        </span>
-                        {booking.price && (
-                          <span className="flex items-center">
-                            <DollarSign className="w-4 h-4 mr-1" />
-                            ₦{booking.price.toLocaleString()}
+                    )}
+                    
+                    {/* Regular Booking Card */}
+                    <div className="flex flex-col gap-4">
+                      <div className="flex-1">
+                        <div className="flex flex-col sm:flex-row sm:items-center gap-2 mb-2">
+                          <h3 className="font-semibold text-gray-900">{booking.service}</h3>
+                          <span className={`px-3 py-1 rounded-full text-xs font-medium ${statusColors[booking.status]}`}>
+                            {statusLabels[booking.status]}
                           </span>
+                          {(booking.status === 'accepted' || booking.status === 'in-progress' || booking.status === 'completed') && (
+                            <button
+                              onClick={() => toggleChat(booking._id)}
+                              className="flex items-center gap-1 px-3 py-1 bg-gray-100 hover:bg-gray-200 rounded-full text-xs font-medium text-gray-700 transition-colors"
+                            >
+                              <MessageCircle className="w-3 h-3" />
+                              Chat
+                            </button>
+                          )}
+                        </div>
+                        <p className="text-gray-600 text-sm mb-3">{booking.description}</p>
+                        
+                        {/* Location context */}
+                        <div className="flex flex-wrap items-center gap-3 md:gap-4 text-xs md:text-sm text-gray-500 mb-3">
+                          <span className="flex items-center">
+                            <User className="w-4 h-4 mr-1" />
+                            {booking.client?.name}
+                          </span>
+                          <span className="flex items-center">
+                            <Calendar className="w-4 h-4 mr-1" />
+                            {new Date(booking.date).toLocaleDateString()}
+                          </span>
+                          <span className="flex items-center">
+                            <MapPin className="w-4 h-4 mr-1" />
+                            <span className="truncate">{booking.address}</span>
+                          </span>
+                          {distance && (
+                            <span className="flex items-center text-blue-600 font-medium">
+                              📏 {distance} km from you
+                            </span>
+                          )}
+                          {!hasClientLocation && (
+                            <span className="flex items-center text-gray-400">
+                              📍 Address only (no map)
+                            </span>
+                          )}
+                          {booking.price && (
+                            <span className="flex items-center">
+                              <DollarSign className="w-4 h-4 mr-1" />
+                              ₦{booking.price.toLocaleString()}
+                            </span>
+                          )}
+                        </div>
+                        
+                        {/* View on Map button for pending/accepted bookings */}
+                        {!isActiveJob && hasClientLocation && (booking.status === 'pending' || booking.status === 'accepted') && (
+                          <button
+                            onClick={() => toggleMap(booking._id)}
+                            className="flex items-center gap-2 text-sm text-primary-600 hover:text-primary-700 font-medium mb-3"
+                          >
+                            <MapPin className="w-4 h-4" />
+                            {expandedMapId === booking._id ? 'Hide Map' : '📍 View on Map'}
+                          </button>
+                        )}
+                        
+                        {/* Inline mini map */}
+                        {expandedMapId === booking._id && !isActiveJob && workerLocation && (
+                          <div className="h-[300px] rounded-lg overflow-hidden mb-3">
+                            <MapContainer
+                              key={`map-${booking._id}`}
+                              center={[
+                                (workerLocation.lat + booking.clientLocation.coordinates.lat) / 2,
+                                (workerLocation.lng + booking.clientLocation.coordinates.lng) / 2
+                              ]}
+                              zoom={13}
+                              style={{ height: '100%', width: '100%' }}
+                            >
+                              <TileLayer
+                                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                              />
+                              <Marker
+                                position={[booking.clientLocation.coordinates.lat, booking.clientLocation.coordinates.lng]}
+                                icon={clientIcon}
+                              >
+                                <Popup>📍 Client Location<br />{booking.address}</Popup>
+                              </Marker>
+                              <Marker
+                                position={[workerLocation.lat, workerLocation.lng]}
+                                icon={workerIcon}
+                              >
+                                <Popup>📍 Your Location</Popup>
+                              </Marker>
+                              <Polyline
+                                positions={[
+                                  [workerLocation.lat, workerLocation.lng],
+                                  [booking.clientLocation.coordinates.lat, booking.clientLocation.coordinates.lng]
+                                ]}
+                                color="#3b82f6"
+                                dashArray="5, 10"
+                              />
+                            </MapContainer>
+                            {distance && (
+                              <div className="absolute top-2 right-2 bg-white px-3 py-1 rounded-lg shadow-md text-sm font-medium text-gray-700">
+                                📏 {distance} km away
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+                        {booking.status === 'pending' && (
+                          <>
+                            <button
+                              onClick={() => updateStatus(booking._id, 'accepted')}
+                              className="flex items-center justify-center px-4 py-2 bg-primary-600 text-white rounded-lg text-sm font-medium hover:bg-primary-700"
+                            >
+                              <CheckCircle className="w-4 h-4 mr-1" />
+                              Accept
+                            </button>
+                            <button
+                              onClick={() => updateStatus(booking._id, 'cancelled')}
+                              className="flex items-center justify-center px-4 py-2 border border-gray-200 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-50"
+                            >
+                              <XCircle className="w-4 h-4 mr-1" />
+                              Decline
+                            </button>
+                          </>
                         )}
                       </div>
                     </div>
-                    <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
-                      {booking.status === 'pending' && (
-                        <>
-                          <button
-                            onClick={() => updateStatus(booking._id, 'accepted')}
-                            className="flex items-center justify-center px-4 py-2 bg-primary-600 text-white rounded-lg text-sm font-medium hover:bg-primary-700"
-                          >
-                            <CheckCircle className="w-4 h-4 mr-1" />
-                            Accept
-                          </button>
-                          <button
-                            onClick={() => updateStatus(booking._id, 'cancelled')}
-                            className="flex items-center justify-center px-4 py-2 border border-gray-200 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-50"
-                          >
-                            <XCircle className="w-4 h-4 mr-1" />
-                            Decline
-                          </button>
-                        </>
-                      )}
-                      {booking.status === 'accepted' && (
-                        <button
-                          onClick={() => updateStatus(booking._id, 'in-progress')}
-                          className="flex items-center justify-center px-4 py-2 bg-purple-600 text-white rounded-lg text-sm font-medium hover:bg-purple-700"
-                        >
-                          <PlayCircle className="w-4 h-4 mr-1" />
-                          Start Job
-                        </button>
-                      )}
-                      {booking.status === 'in-progress' && (
-                        <button
-                          onClick={() => updateStatus(booking._id, 'completed')}
-                          className="flex items-center justify-center px-4 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700"
-                        >
-                          <CheckCircle className="w-4 h-4 mr-1" />
-                          Complete
-                        </button>
-                      )}
-                    </div>
+                    {openChatId === booking._id && (
+                      <div className="mt-4 pt-4 border-t border-gray-100">
+                        <ChatBox
+                          bookingId={booking._id}
+                          otherUserName={booking.client?.name || 'Client'}
+                          onClose={() => setOpenChatId(null)}
+                        />
+                      </div>
+                    )}
                   </div>
-                  {openChatId === booking._id && (
-                    <div className="mt-4 pt-4 border-t border-gray-100">
-                      <ChatBox
-                        bookingId={booking._id}
-                        otherUserName={booking.client?.name || 'Client'}
-                        onClose={() => setOpenChatId(null)}
-                      />
-                    </div>
-                  )}
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>

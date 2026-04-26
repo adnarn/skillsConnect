@@ -155,6 +155,35 @@ export default function ClientDashboard() {
             <div className="divide-y divide-gray-100">
               {bookings.map((booking) => (
                 <div key={booking._id} className="p-4 md:p-6 hover:bg-gray-50 transition-colors">
+                  {/* Worker Accepted Status Card */}
+                  {(booking.status === 'accepted' || booking.status === 'in-progress') && (
+                    <div className="mb-4 p-4 bg-gradient-to-r from-green-50 to-blue-50 rounded-xl border border-green-100">
+                      <div className="flex items-center gap-2 mb-3">
+                        <span className="text-lg">✓</span>
+                        <h3 className="font-bold text-gray-900">Worker Accepted Your Request</h3>
+                      </div>
+                      <p className="text-sm text-gray-600 mb-3">{booking.worker?.name} is on the way</p>
+                      
+                      <div className="flex items-center gap-3 text-sm text-gray-600 mb-3">
+                        <span>🔧 {booking.service}</span>
+                        <span>·</span>
+                        <span>⭐ {booking.worker?.rating?.toFixed(1) || 'N/A'}</span>
+                        <span>·</span>
+                        {booking.worker?.isVerified && (
+                          <span className="text-green-600 font-medium">✓ Verified</span>
+                        )}
+                      </div>
+                      
+                      <button
+                        onClick={() => toggleChat(booking._id)}
+                        className="flex items-center justify-center gap-2 px-4 py-2 bg-primary-600 text-white rounded-lg text-sm font-medium hover:bg-primary-700"
+                      >
+                        <MessageCircle className="w-4 h-4" />
+                        Open Chat
+                      </button>
+                    </div>
+                  )}
+                  
                   <div className="flex flex-col gap-4">
                     <div className="flex-1">
                       <div className="flex flex-col sm:flex-row sm:items-center gap-2 mb-2">
